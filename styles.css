@@ -1,0 +1,80 @@
+
+:root{--void:#060709;--carbon:#111317;--ash:#1a1d23;--solar:#ff7a18;--amber:#ffb347;--gold:#e9c46a;--ease-helion:cubic-bezier(.16,.84,.24,1)}
+html{background:var(--void);scroll-behavior:smooth}body{background:var(--void);color:#fff;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
+.grain:after{content:"";position:fixed;inset:-50%;z-index:60;pointer-events:none;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain 6s steps(6) infinite}
+@keyframes grain{0%,100%{transform:translate(0,0)}16%{transform:translate(-2%,1%)}33%{transform:translate(1%,-2%)}50%{transform:translate(-1%,2%)}66%{transform:translate(2%,1%)}83%{transform:translate(1%,-1%)}}
+.label{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.6875rem;letter-spacing:.32em;text-transform:uppercase;color:rgba(255,255,255,.42)}
+.rule{height:1px;background:linear-gradient(to right,rgba(255,255,255,.16),rgba(255,255,255,0))}
+.display{font-family:"Syne",ui-sans-serif,sans-serif;font-weight:700;line-height:.86;letter-spacing:-.02em}
+.reveal{opacity:0;transform:translateY(32px);transition:opacity 1.1s var(--ease-helion),transform 1.1s var(--ease-helion)}
+.reveal.visible{opacity:1;transform:none}
+.hero-type{animation:heroIn 1.6s var(--ease-helion) both}.hero-fade{animation:fadeIn 1.1s var(--ease-helion) both}
+@keyframes heroIn{from{transform:translateY(115%)}to{transform:translateY(0)}}@keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.particle{position:absolute;width:2px;height:2px;border-radius:50%;background:rgba(255,255,255,.35);box-shadow:0 0 7px rgba(255,122,24,.35);animation:drift var(--d) ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate3d(0,0,0);opacity:.25}to{transform:translate3d(var(--x),var(--y),0);opacity:.8}}
+.arena-art{transition:opacity 1.2s var(--ease-helion),transform 1.2s var(--ease-helion)}
+.arena-copy{overflow:hidden;max-height:0;opacity:0;transition:max-height .8s var(--ease-helion),opacity .8s var(--ease-helion)}
+.arena-item.active .arena-title{opacity:1;transform:translateX(12px)}.arena-item.active .arena-copy{max-height:100px;opacity:1}
+.partner-grid{position:relative}.spotlight{position:absolute;inset:0;pointer-events:none;mask-image:radial-gradient(240px circle at var(--mx,-9999px) var(--my,-9999px),#000,transparent 70%);-webkit-mask-image:radial-gradient(240px circle at var(--mx,-9999px) var(--my,-9999px),#000,transparent 70%)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+
+
+/* HELION original startup motion — reconstructed from the original Framer Motion timings. */
+:root{--ease-helion:cubic-bezier(.16,.84,.24,1)}
+
+.startup-brand{
+  animation: helionBrandIn 1.2s var(--ease-helion) 1.1s both;
+}
+.startup-nav{
+  animation: helionNavIn 1.2s var(--ease-helion) 1.1s both;
+}
+.startup-hero-line{
+  animation: helionFadeIn 1.1s var(--ease-helion) .3s both;
+}
+.startup-hero-title{
+  animation: helionTitleIn 1.6s var(--ease-helion) .15s both;
+}
+.startup-hero-copy{
+  animation: helionFadeIn 1.1s var(--ease-helion) .75s both;
+}
+.startup-hero-actions{
+  animation: helionFadeIn 1.1s var(--ease-helion) .95s both;
+}
+.startup-hero-mark{
+  animation: helionMarkIn 1.6s var(--ease-helion) .4s both;
+}
+
+/* Original BrandMark / Nav entrance: opacity 0,y -10/-12 -> opacity 1,y 0. */
+@keyframes helionBrandIn{
+  from{opacity:0;transform:translateY(-10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes helionNavIn{
+  from{opacity:0;transform:translateY(-12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+/* Original supporting copy: opacity 0,y 14 -> opacity 1,y 0. */
+@keyframes helionFadeIn{
+  from{opacity:0;transform:translateY(14px)}
+  to{opacity:1;transform:translateY(0)}
+}
+/* Original HELION title: y 115% -> 0%. */
+@keyframes helionTitleIn{
+  from{transform:translateY(115%)}
+  to{transform:translateY(0)}
+}
+/* Original hero mark: opacity 0,scale .92 -> opacity 1,scale 1. */
+@keyframes helionMarkIn{
+  from{opacity:0;transform:scale(.92)}
+  to{opacity:1;transform:scale(1)}
+}
+
+/* Original reduced-motion behavior. */
+@media (prefers-reduced-motion: reduce){
+  .startup-brand,.startup-nav,.startup-hero-line,.startup-hero-title,
+  .startup-hero-copy,.startup-hero-actions,.startup-hero-mark{
+    animation:none !important;
+    opacity:1 !important;
+    transform:none !important;
+  }
+}
