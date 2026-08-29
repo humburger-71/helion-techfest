@@ -1,0 +1,15 @@
+{
+  "name": "helion-2027",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HELION 2027 landing page and early-interest service",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test",
+    "export:interests": "node scripts/export-interests.js",
+    "sync:interests": "node scripts/retry-sheet-sync.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}

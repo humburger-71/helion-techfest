@@ -1,0 +1,10 @@
+data/*.sqlite
+data/*.sqlite-shm
+data/*.sqlite-wal
+data/helion-server.json
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+artifacts/
