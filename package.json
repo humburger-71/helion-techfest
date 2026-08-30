@@ -10,6 +10,6 @@
     "sync:interests": "node scripts/retry-sheet-sync.js"
   },
   "engines": {
-    "node": ">=22.5.0"
+    "node": "22.x"
   }
 }
