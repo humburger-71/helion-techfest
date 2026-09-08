@@ -1,6 +1,6 @@
 # HELION 2027
 
-HELION's public interest form collects only a submitter's full name, team size, and each member's name and email. The Node API validates and stores each team in SQLite before attempting the optional Google Sheets mirror.
+HELION's public interest form collects only one person's full name and email. The Node API validates and stores each signup in SQLite before attempting the optional Google Sheets mirror.
 
 ## Run and verify
 
@@ -24,7 +24,7 @@ Copy `.env.example` to `.env` for local development, or add the same values to y
 - `GOOGLE_SERVICE_ACCOUNT_EMAIL`: service-account email.
 - `GOOGLE_PRIVATE_KEY`: service-account private key, with escaped `\n` characters when required by the hosting environment.
 
-Share the spreadsheet with the service-account email as an editor. Create these 13 columns for the fixed maximum team size of five:
+Share the spreadsheet with the service-account email as an editor. Keep the existing 13-column layout for compatibility. New signups use Team Size 1 and only Member 1 Name and Email; remaining member columns stay empty:
 
 `Interest ID | Submitted At | Team Size | Member 1 Name | Member 1 Email | ... | Member 5 Name | Member 5 Email`
 

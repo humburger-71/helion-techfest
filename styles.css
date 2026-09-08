@@ -63,30 +63,6 @@ img, svg { display: block; }
 }
 .rule { width: 4rem; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,.2), transparent); }
 
-.cursor-field {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 18rem;
-  height: 18rem;
-  z-index: 2;
-  border-radius: 50%;
-  pointer-events: none;
-  opacity: 0;
-  background: radial-gradient(circle, rgba(255,122,24,.055), rgba(255,122,24,.018) 38%, transparent 70%);
-  border: 1px solid rgba(255,122,24,.035);
-  filter: blur(.2px);
-  transform: translate3d(-50%, -50%, 0);
-  transition: opacity .7s var(--ease-helion);
-  will-change: transform;
-}
-.cursor-field.active { opacity: 1; }
-[data-magnetic] {
-  --magnetic-x: 0px;
-  --magnetic-y: 0px;
-  translate: var(--magnetic-x) var(--magnetic-y);
-  transition: translate .55s var(--ease-helion);
-}
 
 .site-header {
   position: fixed;
@@ -281,7 +257,6 @@ img, svg { display: block; }
 }
 .orbit-lines { position: absolute; inset: 0; width: 100%; height: 100%; animation: orbitBreathe 10s ease-in-out infinite alternate; }
 .hero-mark { position: relative; z-index: 2; width: auto; height: 62%; filter: drop-shadow(0 0 60px rgba(255,122,24,.35)); }
-.coordinate { position: absolute; right: 0; bottom: 1.5rem; color: rgba(255,255,255,.35); }
 .hero-index {
   position: absolute;
   right: var(--page-pad);
@@ -620,7 +595,6 @@ img, svg { display: block; }
   .hero-actions { align-items: flex-start; flex-direction: column; gap: .6rem; }
   .hero-actions .button { width: 100%; }
   .hero-orbit { max-width: 24rem; }
-  .coordinate { bottom: -.2rem; }
   .hero-index { display: none; }
   .transition-field { height: 7rem; }
   .editorial-section { min-height: 75vh; padding-top: 7rem; padding-bottom: 7rem; }
@@ -646,10 +620,6 @@ img, svg { display: block; }
   .success-state { min-height: min(42rem, calc(100svh - 8rem)); }
 }
 
-@media (pointer: coarse) {
-  .cursor-field { display: none; }
-  [data-magnetic] { translate: none !important; }
-}
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -660,5 +630,4 @@ img, svg { display: block; }
     filter: none !important;
   }
   .scroll-motion { transform: none !important; }
-  .cursor-field { display: none; }
 }

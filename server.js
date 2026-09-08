@@ -1,7 +1,7 @@
 "use strict";
 
 const http = require("node:http");
-const { createHash, createSign } = require("node:crypto");
+const { createHash, createSign, randomBytes } = require("node:crypto");
 const { readFileSync, mkdirSync, existsSync } = require("node:fs");
 const { dirname, extname, join } = require("node:path");
 const { DatabaseSync } = require("node:sqlite");
@@ -23,7 +23,7 @@ const STATIC_FILES = new Map([
 const MIME_TYPES = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".png": "image/png" };
 
 class DuplicateInterestError extends Error {
-  constructor() { super("This team is already on the HELION list."); this.name = "DuplicateInterestError"; }
+  constructor() { super("This email is already on the HELION list."); this.name = "DuplicateInterestError"; }
 }
 class RateLimitError extends Error {
   constructor(retryAfter) { super("Too many submissions. Please try again later."); this.name = "RateLimitError"; this.retryAfter = retryAfter; }
@@ -40,26 +40,12 @@ function validEmail(value) { return value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^
 function validateInterest(input) {
   const errors = {};
   const fullName = cleanText(input?.fullName);
-  const teamSize = Number(input?.teamSize);
-  const rawMembers = Array.isArray(input?.members) ? input.members : [];
+  const email = normaliseEmail(input?.email);
   if (fullName.length < 2) errors.fullName = "Enter your full name.";
   else if (fullName.length > 80) errors.fullName = "Full name must be 80 characters or fewer.";
-  if (!Number.isInteger(teamSize) || teamSize < 1 || teamSize > MAX_TEAM_SIZE) errors.teamSize = `Team size must be between 1 and ${MAX_TEAM_SIZE}.`;
-  if (Number.isInteger(teamSize) && rawMembers.length !== teamSize) errors.members = `Enter exactly ${teamSize} team member${teamSize === 1 ? "" : "s"}.`;
-  const members = rawMembers.slice(0, MAX_TEAM_SIZE + 1).map((member) => ({ name: cleanText(member?.name), email: normaliseEmail(member?.email) }));
-  const seen = new Set();
-  members.forEach((member, index) => {
-    const key = `members.${index}`;
-    if (member.name.length < 2) errors[`${key}.name`] = `Enter member ${index + 1}'s full name.`;
-    else if (member.name.length > 80) errors[`${key}.name`] = "Name must be 80 characters or fewer.";
-    if (!validEmail(member.email)) errors[`${key}.email`] = `Enter a valid email for member ${index + 1}.`;
-    else if (seen.has(member.email)) errors[`${key}.email`] = "Each team member must use a different email.";
-    seen.add(member.email);
-  });
-  if (members[0]?.name && fullName && members[0].name.localeCompare(fullName, undefined, { sensitivity: "base" }) !== 0) {
-    errors["members.0.name"] = "Member 1 must be the participant submitting this form.";
-  }
-  return { errors, value: { fullName, teamSize, members } };
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/u.test(email)) errors.email = "Enter a valid email address.";
+  // Keep existing database and spreadsheet columns compatible with prior submissions.
+  return { errors, value: { fullName, teamSize: 1, members: [{ name: fullName, email }] } };
 }
 
 class InterestStore {
@@ -104,7 +90,7 @@ class InterestStore {
         throw error;
       }
       const numericId = Number(result.lastInsertRowid);
-      const interestId = `HLN-${String(numericId).padStart(5, "0")}`;
+      const interestId = `HLN-${randomBytes(16).toString("hex").toUpperCase()}`;
       this.database.prepare("UPDATE interest_teams SET interest_id=? WHERE id=?").run(interestId, numericId);
       const insert = this.database.prepare("INSERT INTO interest_members(interest_team_id,member_number,name,email,email_normalized) VALUES(?,?,?,?,?)");
       value.members.forEach((member, index) => insert.run(numericId, index + 1, member.name, member.email, member.email));
