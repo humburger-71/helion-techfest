@@ -17,7 +17,10 @@ test("validation requires one name and email and normalizes them", () => {
   assert.equal(result.value.fullName, "Avery Student");
   assert.deepEqual(result.value.members, [{ name: "Avery Student", email: "avery@example.com" }]);
   assert.equal(result.value.teamSize, 1);
-  for (const [field, invalid] of [["mobile", "123"], ["grade", "13"], ["age", 0], ["age", 15.5]]) {
+  for (const grade of ["9", "10", "11", "12", "University"]) {
+    assert.deepEqual(validateInterest({ ...validPerson(), grade }).errors, {});
+  }
+  for (const [field, invalid] of [["mobile", "123"], ["grade", "8"], ["grade", "Other"], ["grade", "13"], ["age", 0], ["age", 15.5]]) {
     assert.ok(validateInterest({ ...validPerson(), [field]: invalid }).errors[field]);
   }
   assert.ok(validateInterest({ fullName: "A" }).errors.fullName);

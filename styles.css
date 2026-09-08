@@ -515,6 +515,7 @@ img, svg { display: block; }
 .form-field input::placeholder { color: rgba(255,255,255,.2); }
 .form-field input:focus, .form-field select:focus { border-color: var(--solar); background: rgba(255,255,255,.02); }
 .form-field select { color-scheme: dark; cursor: pointer; }
+.form-field select option { background-color: #0b0c0f; color: #fff; }
 .form-field select:disabled { cursor: wait; opacity: .55; }
 .form-field small, .consent-error { min-height: 1em; color: #ff8a75; font-size: .72rem; }
 .form-field.has-error input, .form-field.has-error select { border-color: #ff6a55; }

@@ -24,7 +24,7 @@ function validateInterest(input) {
   const grade = cleanText(input?.grade);
   const age = input?.age;
   if (!/^\+?[0-9]{10,15}$/.test(mobile)) errors.mobile = "Enter a valid mobile number (10-15 digits).";
-  if (!/^(?:[1-9]|1[0-2]|Other)$/.test(grade)) errors.grade = "Select your grade for academic year 2027-28.";
+  if (!/^(?:9|1[0-2]|University)$/.test(grade)) errors.grade = "Select your grade for academic year 2027-28.";
   if (!Number.isInteger(age) || age < 1 || age > 120) errors.age = "Enter your current age in whole years.";
   return { errors, value: { fullName, mobile, grade, age, teamSize: 1, members: [{ name: fullName, email }] } };
 }
