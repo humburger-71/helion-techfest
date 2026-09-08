@@ -1,3 +1,4 @@
+import sheetDetails from "../sheet-details.cjs";
 import { createSign, randomBytes } from "node:crypto";
 
 const MAX_TEAM_SIZE = 5;
@@ -64,12 +65,8 @@ async function appendToSheet(interest) {
   const privateKey = String(process.env.GOOGLE_PRIVATE_KEY || "").trim().replace(/\\n/g, "\n");
   if (!spreadsheetId || !email || !privateKey) throw new Error("Google Sheets environment variables are incomplete");
 
-  const row = [interest.interestId, interest.submittedAt, interest.teamSize];
-  for (let index = 0; index < MAX_TEAM_SIZE; index += 1) {
-    row.push(interest.members[index]?.name || "", interest.members[index]?.email || "");
-  }
-  row.push(interest.mobile, interest.grade, interest.age);
-  const range = `'${sheetName.replaceAll("'", "''")}'!A:P`;
+  const row = sheetDetails(interest);
+  const range = `'${sheetName.replaceAll("'", "''")}'!A:G`;
   const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${encodeURIComponent(range)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
   const response = await fetch(endpoint, {
     method: "POST",

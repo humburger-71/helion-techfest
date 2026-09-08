@@ -24,9 +24,7 @@ Copy `.env.example` to `.env` for local development, or add the same values to y
 - `GOOGLE_SERVICE_ACCOUNT_EMAIL`: service-account email.
 - `GOOGLE_PRIVATE_KEY`: service-account private key, with escaped `\n` characters when required by the hosting environment.
 
-Share the spreadsheet with the service-account email as an editor. Keep the existing 13-column layout for compatibility. New signups use Team Size 1 and only Member 1 Name and Email; remaining member columns stay empty:
-
-`Interest ID | Submitted At | Team Size | Member 1 Name | Member 1 Email | ... | Member 5 Name | Member 5 Email`
+Share the spreadsheet with the service-account email as an editor. New signups append one participant per row across columns A:G: Interest ID | Submitted At | Name | Email | Mobile Number | Grade (2027-28) | Age at Signup. Older rows are preserved.
 
 The database is always committed first. If Sheets is unavailable, the API still returns success and leaves an outbox row pending. The long-running server retries due rows every minute with exponential backoff. A scheduled job can also run:
 
@@ -46,4 +44,4 @@ Export a consistent admin CSV:
 npm run export:interests > helion-interests.csv
 ```
 
-Waitlist signups collect name, email, mobile number, grade for academic year 2027-28, and current age. The team-size estimate is no longer collected. Existing database records are preserved; new mobile, grade, and age columns are added automatically on server startup. Google Sheets and CSV exports retain columns A:M for compatibility and append Mobile Number, Grade (2027-28), and Current Age at Signup in columns N:P. Set these headers in an existing sheet.
+Waitlist signups collect name, email, mobile number, grade for academic year 2027-28, and current age. The team-size estimate is no longer collected. Existing database records are preserved; new mobile, grade, and age columns are added automatically on server startup. Google Sheets and CSV exports use the seven-column participant layout above.

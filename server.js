@@ -1,6 +1,7 @@
 "use strict";
 
 const http = require("node:http");
+const sheetDetails = require("./sheet-details.cjs");
 const { createHash, createSign, randomBytes } = require("node:crypto");
 const { readFileSync, mkdirSync, existsSync } = require("node:fs");
 const { dirname, extname, join } = require("node:path");
@@ -168,10 +169,8 @@ class GoogleSheetsMirror {
   }
   async append(team) {
     if (!this.configured) return false;
-    const row = [team.interest_id, team.submitted_at, team.team_size];
-    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) row.push(team.members[i]?.name || "", team.members[i]?.email || "");
-    row.push(team.mobile || "", team.grade || "", team.age ?? "");
-    const range = `'${this.sheetName.replaceAll("'", "''")}'!A:P`;
+    const row = sheetDetails(team);
+    const range = `'${this.sheetName.replaceAll("'", "''")}'!A:G`;
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(this.spreadsheetId)}/values/${encodeURIComponent(range)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
     const response = await fetch(url, { method: "POST", headers: { Authorization: `Bearer ${await this.token()}`, "Content-Type": "application/json" }, body: JSON.stringify({ values: [row] }) });
     if (!response.ok) {
