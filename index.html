@@ -151,7 +151,7 @@
         <div class="dialog-header">
           <span class="label">HELION 2027 / Interest list</span>
           <h2 id="interest-title" class="display">Join the list.</h2>
-          <p>Leave your name and email to join the waitlist.</p>
+          <p>Leave your details to join the waitlist.</p>
         </div>
 
         <form id="interest-form" novalidate>
@@ -165,6 +165,39 @@
               <span>Email <b aria-hidden="true">*</b></span>
               <input type="email" name="email" autocomplete="email" maxlength="254" required placeholder="name@example.com">
               <small data-error-for="email"></small>
+            </label>
+          </div>
+
+          <div class="field-grid interest-basics">
+            <label class="form-field">
+              <span>Mobile number <b aria-hidden="true">*</b></span>
+              <input type="tel" name="mobile" autocomplete="tel" maxlength="25" required placeholder="Your mobile number">
+              <small data-error-for="mobile"></small>
+            </label>
+            <label class="form-field">
+              <span>Grade (academic year 2027-28) <b aria-hidden="true">*</b></span>
+              <select name="grade" required>
+                <option value="">Select your grade</option>
+                <option value="1">Grade 1</option>
+                <option value="2">Grade 2</option>
+                <option value="3">Grade 3</option>
+                <option value="4">Grade 4</option>
+                <option value="5">Grade 5</option>
+                <option value="6">Grade 6</option>
+                <option value="7">Grade 7</option>
+                <option value="8">Grade 8</option>
+                <option value="9">Grade 9</option>
+                <option value="10">Grade 10</option>
+                <option value="11">Grade 11</option>
+                <option value="12">Grade 12</option>
+                <option value="Other">Other / not in school</option>
+              </select>
+              <small data-error-for="grade"></small>
+            </label>
+            <label class="form-field">
+              <span>Current age <b aria-hidden="true">*</b></span>
+              <input type="number" name="age" min="1" max="120" step="1" inputmode="numeric" required placeholder="Age in years">
+              <small data-error-for="age"></small>
             </label>
           </div>
 

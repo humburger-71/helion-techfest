@@ -45,3 +45,5 @@ Export a consistent admin CSV:
 ```sh
 npm run export:interests > helion-interests.csv
 ```
+
+Waitlist signups collect name, email, mobile number, grade for academic year 2027-28, and current age. The team-size estimate is no longer collected. Existing database records are preserved; new mobile, grade, and age columns are added automatically on server startup. Google Sheets and CSV exports retain columns A:M for compatibility and append Mobile Number, Grade (2027-28), and Current Age at Signup in columns N:P. Set these headers in an existing sheet.

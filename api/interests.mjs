@@ -20,8 +20,13 @@ function validateInterest(input) {
   if (fullName.length < 2) errors.fullName = "Enter your full name.";
   else if (fullName.length > 80) errors.fullName = "Full name must be 80 characters or fewer.";
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/u.test(email)) errors.email = "Enter a valid email address.";
-  // Keep existing database and spreadsheet columns compatible with prior submissions.
-  return { errors, value: { fullName, teamSize: 1, members: [{ name: fullName, email }] } };
+  const mobile = cleanText(input?.mobile).replace(/[\s()-]/g, "");
+  const grade = cleanText(input?.grade);
+  const age = input?.age;
+  if (!/^\+?[0-9]{10,15}$/.test(mobile)) errors.mobile = "Enter a valid mobile number (10-15 digits).";
+  if (!/^(?:[1-9]|1[0-2]|Other)$/.test(grade)) errors.grade = "Select your grade for academic year 2027-28.";
+  if (!Number.isInteger(age) || age < 1 || age > 120) errors.age = "Enter your current age in whole years.";
+  return { errors, value: { fullName, mobile, grade, age, teamSize: 1, members: [{ name: fullName, email }] } };
 }
 
 function base64url(value) {
@@ -63,7 +68,8 @@ async function appendToSheet(interest) {
   for (let index = 0; index < MAX_TEAM_SIZE; index += 1) {
     row.push(interest.members[index]?.name || "", interest.members[index]?.email || "");
   }
-  const range = `'${sheetName.replaceAll("'", "''")}'!A:M`;
+  row.push(interest.mobile, interest.grade, interest.age);
+  const range = `'${sheetName.replaceAll("'", "''")}'!A:P`;
   const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${encodeURIComponent(range)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
   const response = await fetch(endpoint, {
     method: "POST",

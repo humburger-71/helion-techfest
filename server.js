@@ -44,8 +44,13 @@ function validateInterest(input) {
   if (fullName.length < 2) errors.fullName = "Enter your full name.";
   else if (fullName.length > 80) errors.fullName = "Full name must be 80 characters or fewer.";
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/u.test(email)) errors.email = "Enter a valid email address.";
-  // Keep existing database and spreadsheet columns compatible with prior submissions.
-  return { errors, value: { fullName, teamSize: 1, members: [{ name: fullName, email }] } };
+  const mobile = cleanText(input?.mobile).replace(/[\s()-]/g, "");
+  const grade = cleanText(input?.grade);
+  const age = input?.age;
+  if (!/^\+?[0-9]{10,15}$/.test(mobile)) errors.mobile = "Enter a valid mobile number (10-15 digits).";
+  if (!/^(?:[1-9]|1[0-2]|Other)$/.test(grade)) errors.grade = "Select your grade for academic year 2027-28.";
+  if (!Number.isInteger(age) || age < 1 || age > 120) errors.age = "Enter your current age in whole years.";
+  return { errors, value: { fullName, mobile, grade, age, teamSize: 1, members: [{ name: fullName, email }] } };
 }
 
 class InterestStore {
@@ -76,6 +81,10 @@ class InterestStore {
       CREATE INDEX IF NOT EXISTS sheet_sync_retry_idx ON sheet_sync_outbox(status,next_attempt_at);
       CREATE INDEX IF NOT EXISTS interest_rate_limit_idx ON interest_rate_limits(requester_hash,attempted_at);
     `);
+    const columns = new Set(this.database.prepare("PRAGMA table_info(interest_teams)").all().map(column => column.name));
+    for (const [name, type] of [["mobile", "TEXT"], ["grade", "TEXT"], ["age", "INTEGER"]]) {
+      if (!columns.has(name)) this.database.exec(`ALTER TABLE interest_teams ADD COLUMN ${name} ${type}`);
+    }
     this.createTransaction = (value) => {
       this.database.exec("BEGIN IMMEDIATE");
       try {
@@ -83,8 +92,8 @@ class InterestStore {
       const fingerprint = createHash("sha256").update(value.members.map((m) => m.email).sort().join("\n")).digest("hex");
       let result;
       try {
-        result = this.database.prepare("INSERT INTO interest_teams(full_name,team_size,submitted_at,team_fingerprint) VALUES(?,?,?,?)")
-          .run(value.fullName, value.teamSize, submittedAt, fingerprint);
+        result = this.database.prepare("INSERT INTO interest_teams(full_name,team_size,submitted_at,team_fingerprint,mobile,grade,age) VALUES(?,?,?,?,?,?,?)")
+          .run(value.fullName, value.teamSize, submittedAt, fingerprint, value.mobile, value.grade, value.age);
       } catch (error) {
         if (String(error.message).includes("team_fingerprint")) throw new DuplicateInterestError();
         throw error;
@@ -117,7 +126,7 @@ class InterestStore {
     this.database.prepare("INSERT INTO interest_rate_limits VALUES(?,?)").run(hash, now);
   }
   getForSheet(id) {
-    const team = this.database.prepare("SELECT id,interest_id,submitted_at,team_size FROM interest_teams WHERE id=?").get(id);
+    const team = this.database.prepare("SELECT id,interest_id,submitted_at,team_size,mobile,grade,age FROM interest_teams WHERE id=?").get(id);
     if (!team) return null;
     team.members = this.database.prepare("SELECT name,email FROM interest_members WHERE interest_team_id=? ORDER BY member_number").all(id);
     return team;
@@ -161,7 +170,8 @@ class GoogleSheetsMirror {
     if (!this.configured) return false;
     const row = [team.interest_id, team.submitted_at, team.team_size];
     for (let i = 0; i < MAX_TEAM_SIZE; i += 1) row.push(team.members[i]?.name || "", team.members[i]?.email || "");
-    const range = `'${this.sheetName.replaceAll("'", "''")}'!A:M`;
+    row.push(team.mobile || "", team.grade || "", team.age ?? "");
+    const range = `'${this.sheetName.replaceAll("'", "''")}'!A:P`;
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(this.spreadsheetId)}/values/${encodeURIComponent(range)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
     const response = await fetch(url, { method: "POST", headers: { Authorization: `Bearer ${await this.token()}`, "Content-Type": "application/json" }, body: JSON.stringify({ values: [row] }) });
     if (!response.ok) {

@@ -8,15 +8,18 @@ const { DatabaseSync } = require("node:sqlite");
 const { createHelionServer, validateInterest } = require("../server");
 
 function validPerson() {
-  return { fullName: "Avery Student", email: "avery@example.com" };
+  return { fullName: "Avery Student", email: "avery@example.com", mobile: "+919876543210", grade: "10", age: 15 };
 }
 
 test("validation requires one name and email and normalizes them", () => {
-  const result = validateInterest({ fullName: "  Avery   Student ", email: " AVERY@example.com " });
+  const result = validateInterest({ ...validPerson(), fullName: "  Avery   Student ", email: " AVERY@example.com " });
   assert.deepEqual(result.errors, {});
   assert.equal(result.value.fullName, "Avery Student");
   assert.deepEqual(result.value.members, [{ name: "Avery Student", email: "avery@example.com" }]);
   assert.equal(result.value.teamSize, 1);
+  for (const [field, invalid] of [["mobile", "123"], ["grade", "13"], ["age", 0], ["age", 15.5]]) {
+    assert.ok(validateInterest({ ...validPerson(), [field]: invalid }).errors[field]);
+  }
   assert.ok(validateInterest({ fullName: "A" }).errors.fullName);
   assert.ok(validateInterest({ ...validPerson(), email: "invalid" }).errors.email);
   assert.ok(validateInterest({ ...validPerson(), email: "" }).errors.email);
@@ -44,15 +47,20 @@ test("API persists individual signups, mirrors safely, and returns random IDs", 
   assert.match(payload.interestId, /^HLN-[0-9A-F]{32}$/);
   assert.equal(appended.length, 1);
   assert.equal(appended[0].interest_id, payload.interestId);
+  assert.equal(appended[0].mobile, validPerson().mobile);
+  assert.equal(appended[0].grade, "10");
+  assert.equal(appended[0].age, 15);
 
   const database = new DatabaseSync(databasePath, { readOnly: true });
   assert.equal(database.prepare("SELECT COUNT(*) count FROM interest_teams").get().count, 1);
   assert.equal(database.prepare("SELECT COUNT(*) count FROM interest_members").get().count, 1);
   assert.equal(database.prepare("SELECT status FROM sheet_sync_outbox").get().status, "SYNCED");
   assert.equal(database.prepare("SELECT interest_id FROM interest_teams").get().interest_id, payload.interestId);
+  assert.equal(database.prepare("SELECT team_size FROM interest_teams").get().team_size, 1);
+  assert.equal(database.prepare("SELECT mobile FROM interest_teams").get().mobile, validPerson().mobile);
   database.close();
 
-  const second = await fetch(`${baseUrl}/api/interests`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fullName: "Another Student", email: "another@example.com" }) });
+  const second = await fetch(`${baseUrl}/api/interests`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...validPerson(), fullName: "Another Student", email: "another@example.com" }) });
   assert.equal(second.status, 201);
   const secondPayload = await second.json();
   assert.match(secondPayload.interestId, /^HLN-[0-9A-F]{32}$/);

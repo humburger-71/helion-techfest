@@ -283,11 +283,14 @@
       });
     }
     function values() {
-      return { fullName: form.elements.fullName.value.trim(), email: form.elements.email.value.trim().toLowerCase() };
+      return { fullName: form.elements.fullName.value.trim(), email: form.elements.email.value.trim().toLowerCase(), mobile: form.elements.mobile.value.trim().replace(/[\s()-]/g, ""), grade: form.elements.grade.value, age: Number(form.elements.age.value) };
     }
     function validate(data) {
       const errors = {};
       if (data.fullName.length < 2) errors.fullName = "Enter your full name.";
+      if (!/^\+?[0-9]{10,15}$/.test(data.mobile)) errors.mobile = "Enter a valid mobile number (10-15 digits).";
+      if (!/^(?:[1-9]|1[0-2]|Other)$/.test(data.grade)) errors.grade = "Select your grade for academic year 2027-28.";
+      if (!Number.isInteger(data.age) || data.age < 1 || data.age > 120) errors.age = "Enter your current age in whole years.";
       else if (data.fullName.length > 80) errors.fullName = "Full name must be 80 characters or fewer.";
       if (data.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/u.test(data.email)) errors.email = "Enter a valid email address.";
       return errors;
