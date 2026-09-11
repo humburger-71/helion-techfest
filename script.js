@@ -59,12 +59,14 @@
       if (reducedMotion) return;
 
       const viewportHeight = window.innerHeight;
+      const motionScale = Math.min(1, document.documentElement.clientWidth / 1440);
       motionElements.forEach((element) => {
-        const bounds = element.getBoundingClientRect();
+        // Measure the stationary section so transforms cannot feed back into progress.
+        const bounds = (element.closest('.motion-section, .transition-field') || element.parentElement).getBoundingClientRect();
         const progress = clamp((viewportHeight - bounds.top) / (viewportHeight + bounds.height), 0, 1);
         const distance = (progress - 0.5) * 2;
-        const x = distance * Number(element.dataset.speedX || 0);
-        const y = distance * Number(element.dataset.speedY || 0);
+        const x = distance * Number(element.dataset.speedX || 0) * motionScale;
+        const y = distance * Number(element.dataset.speedY || 0) * motionScale;
         const rotation = distance * Number(element.dataset.rotate || 0);
         const scale = 1 + distance * Number(element.dataset.scale || 0);
         element.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${rotation.toFixed(3)}deg) scale(${scale.toFixed(4)})`;
@@ -308,7 +310,7 @@
       // Start from transparent, then fade in after the dialog has been painted.
       requestAnimationFrame(() => dialog.classList.add("is-open"));
 
-      window.setTimeout(() => form.elements.fullName.focus({ preventScroll: true }), 260);
+      dialog.querySelector('.interest-shell').scrollTop = 0;
     }
     function closeDialog() {
       dialog.classList.remove("is-open");

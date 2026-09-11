@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="styles.css?v=20260905-2">
+  <link rel="stylesheet" href="styles.css?v=20260911-1">
 </head>
 <body class="grain">
 
@@ -142,8 +142,8 @@
   </main>
 
   <dialog id="interest-dialog" class="interest-dialog" aria-labelledby="interest-title">
-    <div class="interest-shell">
-      <button type="button" class="dialog-close" data-interest-close aria-label="Close interest form">
+    <div class="interest-shell" data-lenis-prevent>
+      <button type="button" class="dialog-close" data-interest-close autofocus aria-label="Close interest form">
         <span></span><span></span>
       </button>
 
@@ -214,7 +214,7 @@
   </dialog>
 
   <noscript><p class="noscript-message">JavaScript is required to submit your interest in HELION.</p></noscript>
-  <script src="script.js?v=20260905-2"></script>
+  <script src="script.js?v=20260911-1"></script>
   <script src="https://unpkg.com/lenis@1.3.25/dist/lenis.min.js"></script>
   <script src="smoothscroll.js?v=20260829-2"></script>
 </body>

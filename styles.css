@@ -96,6 +96,7 @@ img, svg { display: block; }
   backdrop-filter: blur(18px);
 }
 .brand-link { justify-self: start; display: inline-flex; align-items: center; gap: .65rem; }
+.brand-link img { width: auto; height: 1.5rem; }
 .brand-link span {
   font-family: "Syne", sans-serif;
   font-size: .9rem;
@@ -294,7 +295,7 @@ img, svg { display: block; }
   top: 50%;
   left: 11%;
   color: rgba(255,255,255,.052);
-  font-size: clamp(7rem, 22vw, 23rem);
+  font-size: min(17vw, 23rem);
   line-height: .7;
   -webkit-text-stroke: 1px rgba(255,255,255,.09);
   translate: 0 -50%;
@@ -335,10 +336,10 @@ img, svg { display: block; }
 }
 .section-ghost {
   position: absolute;
-  right: -2%;
+  right: 8%;
   bottom: -2vw;
   color: rgba(255,255,255,.045);
-  font-size: clamp(8rem, 19vw, 20rem);
+  font-size: min(14vw, 20rem);
   white-space: nowrap;
   pointer-events: none;
   -webkit-text-stroke: 1px rgba(255,255,255,.085);
@@ -418,9 +419,11 @@ img, svg { display: block; }
 }
 
 .interest-dialog {
+  position: fixed;
+  inset: 0;
   width: 100%;
   max-width: none;
-  height: 100%;
+  height: 100dvh;
   max-height: none;
   margin: 0;
   padding: 0;
@@ -440,9 +443,12 @@ img, svg { display: block; }
 .interest-shell {
   position: relative;
   width: min(48rem, 100%);
-  height: 100svh;
+  height: 100%;
+  min-height: 0;
   padding: clamp(4.5rem, 8vh, 6.5rem) clamp(1.5rem, 5vw, 4.5rem) 3rem;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   background: #0b0c0f;
   border-left: 1px solid rgba(255,255,255,.11);
   box-shadow: -2rem 0 8rem rgba(0,0,0,.45);
@@ -481,7 +487,7 @@ img, svg { display: block; }
 .dialog-header h2 { margin: 1.4rem 0 1.2rem; font-size: clamp(3.4rem, 8vw, 6rem); }
 .dialog-header p { max-width: 36rem; margin: 0; color: rgba(255,255,255,.5); font-size: .96rem; line-height: 1.75; }
 #interest-form { position: relative; margin-top: clamp(2.5rem, 5vh, 4rem); }
-.field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6rem 1.25rem; }
+.field-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.6rem 1.25rem; }
 .members-heading { display: flex; justify-content: space-between; align-items: center; margin: 2rem 0 .85rem; }
 .members-heading > span:last-child { color: rgba(255,255,255,.38); font-size: .75rem; }
 .team-members { display: grid; gap: 1rem; }
@@ -490,7 +496,7 @@ img, svg { display: block; }
 .member-card legend em { color: var(--solar); font-size: .65rem; font-style: normal; letter-spacing: .1em; text-transform: uppercase; }
 .member-card .field-grid { gap: .9rem; }
 .members-error { display: block; min-height: 1em; margin-top: .45rem; color: #ff8a75; font-size: .72rem; }
-.form-field { display: flex; flex-direction: column; gap: .6rem; }
+.form-field { display: flex; min-width: 0; flex-direction: column; gap: .6rem; }
 .form-field > span {
   color: rgba(255,255,255,.55);
   font-family: "JetBrains Mono", monospace;
@@ -576,7 +582,7 @@ img, svg { display: block; }
 ::selection { background: var(--solar); color: #090909; }
 
 @media (max-width: 900px) {
-  .nav-inner { grid-template-columns: 1fr auto; }
+  .nav-inner { grid-template-columns: minmax(0, 1fr) auto; }
   .nav-links { display: none; }
   .hero-section { min-height: auto; padding-top: 8.5rem; }
   .hero-grid { grid-template-columns: 1fr; gap: 3rem; }
@@ -593,6 +599,7 @@ img, svg { display: block; }
   .brand-link span { font-size: .75rem; letter-spacing: .2em; }
   .nav-inner > .button { min-height: 2.45rem; padding: .6rem .75rem; font-size: .6rem; }
   .hero-section { padding-top: 7.5rem; padding-bottom: 4rem; }
+  .hero-title { font-size: 17vw; }
   .hero-actions { align-items: flex-start; flex-direction: column; gap: .6rem; }
   .hero-actions .button { width: 100%; }
   .hero-orbit { max-width: 24rem; }
@@ -610,14 +617,16 @@ img, svg { display: block; }
   .interest-shell {
     width: 100%;
     height: auto;
-    max-height: calc(100svh - 1rem);
-    padding: 4.5rem 1.4rem 2rem;
+    max-height: 100%;
+    padding: max(4.5rem, env(safe-area-inset-top)) max(1.4rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(1.4rem, env(safe-area-inset-left));
     border-top: 1px solid rgba(255,255,255,.12);
     border-left: 0;
   }
   .dialog-close { top: 1rem; right: 1.4rem; }
   .field-grid { grid-template-columns: 1fr; gap: 1.1rem; }
-  .dialog-header h2 { font-size: 3.5rem; }
+  .dialog-header h2 { font-size: clamp(2.5rem, 10vw, 3.5rem); }
+  .form-field input, .form-field select { font-size: 16px; }
+  .reference-block { flex-wrap: wrap; overflow-wrap: anywhere; }
   .success-state { min-height: min(42rem, calc(100svh - 8rem)); }
 }
 
