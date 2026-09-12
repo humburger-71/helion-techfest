@@ -6,7 +6,7 @@ const {tmpdir}=require('node:os');
 const {join}=require('node:path');
 const {DatabaseSync}=require('node:sqlite');
 const {createHelionServer,InterestStore,retryPendingSheetSyncs}=require('../server');
-const {passwordHash,paymentConfig,paymentUri,confirmationMessage}=require('../payments');
+const {passwordHash,paymentConfig,paymentUri,confirmationMessage,createMailer}=require('../payments');
 const env={HELION_UPI_ID:'configured-payee@upi',HELION_UPI_PAYEE_NAME:'HELION Test',HELION_EARLY_ACCESS_AMOUNT:'19',HELION_ADMIN_USERNAME:'reviewer',HELION_ADMIN_PASSWORD_HASH:passwordHash('correct-password-123')};
 const person={fullName:'Test Student',email:'test@example.com',mobile:'9876543210',grade:'10',age:15};
 async function setup(t,options={}) {
@@ -122,4 +122,18 @@ test('missing payment config saves nothing and authentication cookies are protec
   const response=await request('/api/interests',person);assert.equal(response.status,503);assert.equal(app.store.database.prepare('SELECT count(*) n FROM interest_teams').get().n,0);
   const cookie=(await request('/api/application')).headers.get('set-cookie');assert.match(cookie,/HttpOnly/);assert.match(cookie,/SameSite=Strict/);assert.match(cookie,/Secure/);
   const html=await (await request('/')).text();assert.match(html,/id="payment-qr"/);assert.match(html,/id="payment-form"/);
+});
+
+test('SMTP is optional: payment and ID confirm while email stays queued without failed attempts',async t=>{
+  const {app,request,session,login}=await setup(t,{mailer:createMailer(env)});
+  const cookie=await session(),admin=await login();
+  const row=(await (await request('/api/interests',person,cookie)).json()).application;
+  await request('/api/application/payment',{transactionId:'SMTPTEST123456'},cookie);
+  const response=await request(`/api/admin/payments/${row.id}/confirm`,{transactionId:'SMTPTEST123456'},admin);
+  assert.equal(response.status,200);
+  await app.retryEmails();
+  const state=(await (await request('/api/application',undefined,cookie)).json()).application;
+  assert.equal(state.paymentStatus,'paid');assert.match(state.interestId,/^HLN-[0-9A-F]{32}$/);
+  const email=app.store.database.prepare('SELECT status,attempts,last_error FROM confirmation_email_outbox').get();
+  assert.equal(email.status,'pending');assert.equal(email.attempts,0);assert.equal(email.last_error,null);
 });

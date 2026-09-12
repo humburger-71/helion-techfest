@@ -5,7 +5,7 @@ export default {
     const path=new URL(request.url).pathname;
     if(!ALLOWED.test(path)) return Response.json({message:'Not found'},{status:404});
     const origin=process.env.HELION_BACKEND_ORIGIN;
-    if(!origin) return Response.json({message:'Early Access is temporarily unavailable.'},{status:503});
+    if(!origin) return Response.json({message:'The waitlist service is not connected yet. Please try again later.'},{status:503});
     let target;
     try {
       target=new URL(origin);

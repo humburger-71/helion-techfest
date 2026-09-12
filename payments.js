@@ -71,7 +71,9 @@ function confirmationMessage(row, email, from) {
 }
 function createMailer(env) {
   let transport;
-  return { async send(row,email) {
+  return {
+    get configured() { return Boolean(env.EMAIL_HOST && env.EMAIL_FROM && env.EMAIL_USER && env.EMAIL_PASSWORD); },
+    async send(row,email) {
     if (!env.EMAIL_HOST || !env.EMAIL_FROM || !env.EMAIL_USER || !env.EMAIL_PASSWORD) throw new Error("Email is not configured");
     transport ||= nodemailer.createTransport({host:env.EMAIL_HOST,port:Number(env.EMAIL_PORT||587),secure:Number(env.EMAIL_PORT||587)===465,
       requireTLS:true, auth:{user:env.EMAIL_USER,pass:env.EMAIL_PASSWORD}, connectionTimeout:10000,greetingTimeout:10000,socketTimeout:20000});
@@ -171,6 +173,8 @@ function createPaymentApi({store,env,mailer,sendJson,readJsonBody,sync}) {
     } catch(error) { db.exec("ROLLBACK"); throw error; }
   }
   async function sendEmail(id) {
+    // SMTP setup is optional. Keep the durable queue untouched until configured.
+    if (mailer.configured === false) return;
     const claimed=db.prepare("UPDATE confirmation_email_outbox SET status='sending',attempts=attempts+1,started_at=? WHERE interest_team_id=? AND status IN ('pending','failed')").run(now(),id);
     if (!claimed.changes) return;
     try {
