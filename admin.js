@@ -49,6 +49,12 @@
     catch(error){get('admin-message').textContent=error.message;}finally{button.disabled=false;}
   });
   get('admin-refresh').addEventListener('click',()=>load().catch(error=>get('admin-message').textContent=error.message));
+  get('admin-retry-delivery').addEventListener('click',async event=>{
+    event.target.disabled=true;
+    try {await api('retry-delivery',{});await load();}
+    catch(error){get('admin-message').textContent=error.message;}
+    finally{event.target.disabled=false;}
+  });
   get('admin-logout').addEventListener('click',async()=>{
     try{await api('logout',{});get('admin-login').hidden=false;get('admin-payments').hidden=true;get('admin-list').replaceChildren();get('admin-message').textContent='Logged out.';}
     catch(error){get('admin-message').textContent=error.message;}

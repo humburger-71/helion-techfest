@@ -106,5 +106,5 @@ test("database success survives a Google Sheets failure and queues retry", async
   await confirmCreated(baseUrl,response,'123456789014');
   const database = new DatabaseSync(databasePath, { readOnly: true });
   const outbox = database.prepare("SELECT status,attempts,last_error FROM sheet_sync_outbox").get(); database.close();
-  assert.equal(outbox.status, "PENDING"); assert.equal(outbox.attempts, 1); assert.match(outbox.last_error, /temporary outage/);
+  assert.equal(outbox.status, "PENDING"); assert.equal(outbox.attempts, 1); assert.match(outbox.last_error, /synchronization failed/);
 });

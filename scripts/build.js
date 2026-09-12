@@ -4,7 +4,7 @@ const {spawnSync}=require('node:child_process');
 const {readFileSync,mkdirSync,copyFileSync}=require('node:fs');
 const {join}=require('node:path');
 const root=join(__dirname,'..');
-for(const file of ['server.js','payments.js','script.js','payment.js','admin.js','smoothscroll.js','api/interests.mjs','api/[...path].mjs','api/proxy.mjs','scripts/admin-password.js']) {
+for(const file of ['server.js','payments.js','database.js','vercel-api.js','script.js','payment.js','admin.js','smoothscroll.js','api/interests.mjs','api/[...path].mjs','api/proxy.mjs','scripts/admin-password.js','scripts/setup-database.js']) {
   const result=spawnSync(process.execPath,['--check',join(root,file)],{stdio:'inherit'});
   if(result.status!==0)process.exit(result.status||1);
 }

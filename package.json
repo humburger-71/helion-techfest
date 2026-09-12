@@ -10,12 +10,14 @@
     "sync:interests": "node scripts/retry-sheet-sync.js",
     "build": "node scripts/build.js",
     "admin:password": "node scripts/admin-password.js",
-    "test:browser": "node scripts/visual-check.js"
+    "test:browser": "node scripts/visual-check.js",
+    "db:setup": "node scripts/setup-database.js"
   },
   "engines": {
     "node": "22.x"
   },
   "dependencies": {
+    "@libsql/client": "^0.18.0",
     "nodemailer": "^10.0.8",
     "qrcode": "^1.5.4"
   },

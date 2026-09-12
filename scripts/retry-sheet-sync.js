@@ -1,10 +1,11 @@
 "use strict";
 
-const { InterestStore, GoogleSheetsMirror, DEFAULT_DATABASE_PATH, retryPendingSheetSyncs } = require("../server");
+const { InterestStore, createTursoStore, GoogleSheetsMirror, DEFAULT_DATABASE_PATH, retryPendingSheetSyncs } = require("../server");
 
 async function main() {
-  const store = new InterestStore(process.env.HELION_DB_PATH || DEFAULT_DATABASE_PATH);
+  const store = process.env.TURSO_DATABASE_URL ? createTursoStore() : new InterestStore(process.env.HELION_DB_PATH || DEFAULT_DATABASE_PATH);
   try {
+    await store.ready;
     const mirror = new GoogleSheetsMirror();
     if (!mirror.configured) throw new Error("Google Sheets environment variables are not configured.");
     const synced = await retryPendingSheetSyncs(store, mirror, 100);
