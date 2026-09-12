@@ -1,0 +1,6 @@
+.env
+.env.*
+data/
+artifacts/
+helion-techfest/
+node_modules/

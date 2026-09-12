@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="styles.css?v=20260911-1">
+  <link rel="stylesheet" href="styles.css?v=20260912-2">
 </head>
 <body class="grain">
 
@@ -57,7 +57,7 @@
           <p class="startup-hero-copy hero-kicker">Build Beyond the Horizon.</p>
           <div class="startup-hero-actions hero-actions">
             <button class="button button-primary" type="button" data-interest-open>
-              Get early access
+              Join the waitlist
               <span class="button-arrow" aria-hidden="true">↗</span>
             </button>
             <a href="#details" class="text-link">
@@ -121,7 +121,7 @@
           <div class="interest-band-copy">
             <span class="label">Before registrations open</span>
             <p class="display">Stay close to the horizon.</p>
-            <span>Leave your details for the opening notice and early-registration discount eligibility.</span>
+            <span>Join the waitlist for special perks and early updates before registration opens.</span>
           </div>
           <button class="button button-primary" type="button" data-interest-open>
             Register your interest
@@ -151,7 +151,7 @@
         <div class="dialog-header">
           <span class="label">HELION 2027 / Interest list</span>
           <h2 id="interest-title" class="display">Join the list.</h2>
-          <p>Leave your details to join the waitlist.</p>
+          <p>Leave your details, then complete your waitlist payment. Confirmation follows manual payment verification.</p>
         </div>
 
         <form id="interest-form" novalidate>
@@ -202,19 +202,40 @@
         </form>
       </div>
 
-      <div id="interest-success" class="success-state" hidden aria-live="polite">
+      <div id="interest-payment" hidden aria-live="polite" tabindex="-1">
+        <div class="dialog-header">
+          <span class="label">HELION 2027 / Payment required</span>
+          <h2 class="display" id="payment-title">Complete your waitlist payment</h2>
+          <p id="payment-instructions">Scan the QR code using any UPI app.</p>
+        </div>
+        <p><strong id="payment-amount"></strong></p>
+        <img id="payment-qr" class="payment-qr" alt="UPI payment QR code" width="300" height="300">
+        <p class="payment-upi">UPI ID: <strong id="payment-upi"></strong></p>
+        <p><a id="payment-open" class="button button-quiet">Open UPI app</a></p>
+        <form id="payment-form">
+          <h3>Already paid?</h3>
+          <label class="form-field"><span>UPI transaction/reference ID</span>
+            <input name="transactionId" required minlength="8" maxlength="35" pattern="[A-Za-z0-9]{8,35}" autocomplete="off" aria-describedby="payment-help">
+          </label>
+          <p class="form-note" id="payment-help">Enter only your transaction/reference ID. Payment is checked manually before waitlist is confirmed.</p>
+          <p id="payment-error" class="form-error" role="alert"></p>
+          <button class="button button-primary submit-button" id="payment-submit" type="submit">I've Paid</button>
+        </form>
+      </div>
+      <div id="interest-success" class="success-state" hidden aria-live="polite" tabindex="-1">
         <span class="success-mark" aria-hidden="true">✓</span>
-        <span class="label">Interest received</span>
-        <h2 class="display">You're on the HELION list.</h2>
-        <p>Your interest has been recorded. Save this Interest ID—you may need it when registrations open.</p>
-        <div class="reference-block"><span class="label">Interest ID</span><strong id="interest-reference"></strong></div>
+        <span class="label" id="payment-status-label">Pending verification</span>
+        <h2 class="display" id="payment-result-title">Payment Submitted</h2>
+        <p id="payment-result-message"></p>
+        <div class="reference-block" id="interest-reference-block" hidden><span class="label">Interest ID</span><strong id="interest-reference"></strong></div>
         <button class="button button-quiet" type="button" data-interest-close>Return to HELION</button>
       </div>
     </div>
   </dialog>
 
   <noscript><p class="noscript-message">JavaScript is required to submit your interest in HELION.</p></noscript>
-  <script src="script.js?v=20260911-1"></script>
+  <script src="payment.js?v=20260912-2"></script>
+  <script src="script.js?v=20260912-2"></script>
   <script src="https://unpkg.com/lenis@1.3.25/dist/lenis.min.js"></script>
   <script src="smoothscroll.js?v=20260829-2"></script>
 </body>

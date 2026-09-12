@@ -299,6 +299,8 @@
     }
     function resetFlow() {
       form.reset(); clearErrors(); formView.hidden = false; successView.hidden = true;
+      qs("#interest-payment").hidden = true;
+      dialog.setAttribute('aria-labelledby','interest-title');
       reference.textContent = ""; submitButton.disabled = false; submitLabel.textContent = "Submit interest";
     }
     function openDialog() {
@@ -311,6 +313,7 @@
       requestAnimationFrame(() => dialog.classList.add("is-open"));
 
       dialog.querySelector('.interest-shell').scrollTop = 0;
+      window.helionPayment.resume().catch(error => { formError.textContent = error.message; });
     }
     function closeDialog() {
       dialog.classList.remove("is-open");
@@ -333,11 +336,12 @@
       if (Object.keys(errors).length) { applyErrors(errors); qs(".has-error input, .has-error select", form)?.focus(); return; }
       submitButton.disabled = true; submitLabel.textContent = "Sending…";
       try {
+        await window.helionPayment.resume();
         const response = await fetch("/api/interests", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(data) });
         const payload = await response.json().catch(() => ({}));
         if (response.status === 422 && payload.errors) { applyErrors(payload.errors); throw new Error(""); }
         if (!response.ok) throw new Error(payload.message || "We couldn't save your interest. Please try again.");
-        reference.textContent = payload.interestId; formView.hidden = true; successView.hidden = false; successView.focus?.();
+        window.helionPayment.render(payload);
       } catch (error) {
         if (error.message) formError.textContent = error instanceof TypeError ? "We couldn't connect. Please try again." : error.message;
       } finally { submitButton.disabled = false; submitLabel.textContent = "Submit interest"; }

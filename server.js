@@ -2,10 +2,11 @@
 
 const http = require("node:http");
 const sheetDetails = require("./sheet-details.cjs");
-const { createHash, createSign, randomBytes } = require("node:crypto");
+const { createHash, createSign } = require("node:crypto");
 const { readFileSync, mkdirSync, existsSync } = require("node:fs");
 const { dirname, extname, join } = require("node:path");
 const { DatabaseSync } = require("node:sqlite");
+const payments = require("./payments");
 
 const ROOT_DIR = __dirname;
 const ENV_PATH = join(ROOT_DIR, ".env");
@@ -18,6 +19,7 @@ const RATE_MAX = 5;
 const STATIC_FILES = new Map([
   ["/", "index.html"], ["/index.html", "index.html"], ["/styles.css", "styles.css"],
   ["/script.js", "script.js"], ["/smoothscroll.js", "smoothscroll.js"],
+  ["/admin", "admin.html"], ["/admin.js", "admin.js"], ["/payment.js", "payment.js"],
   ["/brand/helion-icon.png", "brand/helion-icon.png"],
   ["/brand/helion-wordmark.png", "brand/helion-wordmark.png"]
 ]);
@@ -86,7 +88,8 @@ class InterestStore {
     for (const [name, type] of [["mobile", "TEXT"], ["grade", "TEXT"], ["age", "INTEGER"]]) {
       if (!columns.has(name)) this.database.exec(`ALTER TABLE interest_teams ADD COLUMN ${name} ${type}`);
     }
-    this.createTransaction = (value) => {
+    payments.migrate(this.database);
+    this.createTransaction = (value, payment) => {
       this.database.exec("BEGIN IMMEDIATE");
       try {
       const submittedAt = new Date().toISOString();
@@ -100,11 +103,12 @@ class InterestStore {
         throw error;
       }
       const numericId = Number(result.lastInsertRowid);
-      const interestId = `HLN-${randomBytes(16).toString("hex").toUpperCase()}`;
-      this.database.prepare("UPDATE interest_teams SET interest_id=? WHERE id=?").run(interestId, numericId);
+      const interestId = null;
+      if (!payment) throw new Error("Payment configuration and application session are required");
+      this.database.prepare("UPDATE interest_teams SET payment_status='payment_pending',amount_paise=?,application_token_hash=?,upi_id=?,payee_name=? WHERE id=?")
+        .run(payment.amountPaise, payment.tokenHash, payment.upiId, payment.payeeName, numericId);
       const insert = this.database.prepare("INSERT INTO interest_members(interest_team_id,member_number,name,email,email_normalized) VALUES(?,?,?,?,?)");
       value.members.forEach((member, index) => insert.run(numericId, index + 1, member.name, member.email, member.email));
-      this.database.prepare("INSERT INTO sheet_sync_outbox(interest_team_id,next_attempt_at) VALUES(?,?)").run(numericId, submittedAt);
       const created = { numericId, interestId, submittedAt, ...value };
       this.database.exec("COMMIT");
       return created;
@@ -114,7 +118,7 @@ class InterestStore {
       }
     };
   }
-  create(value) { return this.createTransaction(value); }
+  create(value, payment) { return this.createTransaction(value, payment); }
   checkRateLimit(requester) {
     const now = Date.now(), cutoff = now - RATE_WINDOW_MS;
     const hash = createHash("sha256").update(`${process.env.RATE_LIMIT_SALT || "helion"}:${requester}`).digest("hex");
@@ -183,6 +187,7 @@ class GoogleSheetsMirror {
 
 async function syncOne(store, mirror, id) {
   if (!mirror.configured) return false;
+  if (!store.getForSheet(id)?.interest_id) return false;
   try { await mirror.append(store.getForSheet(id)); store.markSynced(id); return true; }
   catch (error) { store.markSyncFailed(id, error); console.error("Google Sheets synchronization failed:", error.message); return false; }
 }
@@ -198,22 +203,29 @@ function readJsonBody(request) { return new Promise((resolve, reject) => { const
 function isSameOrigin(request) { const origin=request.headers.origin; if(!origin)return true; try{return new URL(origin).host===request.headers.host;}catch{return false;} }
 function serveStatic(pathname, request, response) { const relative=STATIC_FILES.get(pathname); if(!relative)return false; try{const body=readFileSync(join(ROOT_DIR,relative));response.writeHead(200,{...securityHeaders(),"Content-Type":MIME_TYPES[extname(relative)]||"application/octet-stream","Content-Length":body.length,"Cache-Control":extname(relative)===".html"?"no-cache":"public, max-age=3600"});response.end(request.method==="HEAD"?undefined:body);}catch{sendJson(response,404,{message:"Not found"});}return true; }
 
-function createHelionServer({ databasePath=DEFAULT_DATABASE_PATH, mirror=new GoogleSheetsMirror() }={}) {
+function createHelionServer({ databasePath=DEFAULT_DATABASE_PATH, mirror=new GoogleSheetsMirror(), env=process.env, mailer=payments.createMailer(env) }={}) {
   const store = new InterestStore(databasePath);
+  const paymentApi = payments.createPaymentApi({store, env, mailer, sendJson, readJsonBody, sync: id => syncOne(store,mirror,id)});
   const handler = async (request, response) => {
     let url; try{url=new URL(request.url,`http://${request.headers.host||"localhost"}`);}catch{sendJson(response,400,{message:"Invalid request URL"});return;}
     if((request.method==="GET"||request.method==="HEAD")&&serveStatic(url.pathname,request,response))return;
     if(request.method==="GET"&&url.pathname==="/api/health"){sendJson(response,200,{status:"ok",application:"HELION"});return;}
+    if (url.pathname.startsWith('/api/')) {
+      try { if (await paymentApi.handle(url,request,response)) return; }
+      catch(error) {
+        if(error instanceof RateLimitError) { sendJson(response,429,{message:error.message},{'Retry-After':String(error.retryAfter)}); return; }
+        sendJson(response,error.statusCode||500,{message:error.statusCode?error.message:"The request could not be completed."}); return;
+      }
+    }
     if(url.pathname==="/api/interests"&&request.method==="POST"){
-      if(!isSameOrigin(request)){sendJson(response,403,{message:"Cross-origin submissions are not accepted."});return;}
       if(!String(request.headers["content-type"]||"").toLowerCase().startsWith("application/json")){sendJson(response,415,{message:"Content-Type must be application/json."});return;}
       try{
-        const requester=String(request.headers["x-forwarded-for"]||request.socket?.remoteAddress||"unknown").split(",")[0].trim();
+        const requester=paymentApi.requester(request);
         store.checkRateLimit(requester);
         const validation=validateInterest(await readJsonBody(request));
         if(Object.keys(validation.errors).length){sendJson(response,422,{message:"Please check the highlighted fields.",errors:validation.errors});return;}
-        const interest=store.create(validation.value); await syncOne(store,mirror,interest.numericId);
-        sendJson(response,201,{message:"Interest recorded.",interestId:interest.interestId});
+        const result = await paymentApi.create(validation.value,request,response);
+        sendJson(response,201,result);
       }catch(error){
         if(error instanceof DuplicateInterestError){sendJson(response,409,{message:error.message,code:"DUPLICATE_SUBMISSION"});return;}
         if(error instanceof RateLimitError){sendJson(response,429,{message:error.message,code:"RATE_LIMITED"},{"Retry-After":String(error.retryAfter)});return;}
@@ -224,7 +236,7 @@ function createHelionServer({ databasePath=DEFAULT_DATABASE_PATH, mirror=new Goo
     if(url.pathname==="/api/interests"){sendJson(response,405,{message:"Method not allowed"},{Allow:"POST"});return;}
     sendJson(response,404,{message:"Not found"});
   };
-  return { server:http.createServer(handler), store, handler, mirror };
+  return { server:http.createServer(handler), store, handler, mirror, retryEmails: paymentApi.retryEmails };
 }
 
 if(require.main===module){
@@ -232,7 +244,8 @@ if(require.main===module){
   const port=Number.parseInt(process.env.PORT||"3000",10),host=process.env.HOST||"127.0.0.1";
   app.server.listen(port,host,()=>console.log(`HELION is running at http://${host}:${port}`));
   const timer=setInterval(()=>retryPendingSheetSyncs(app.store,app.mirror).catch(error=>console.error("Sheet retry failed:",error)),60_000);timer.unref();
-  function shutdown(){clearInterval(timer);app.server.close(()=>{app.store.close();process.exit(0);});app.server.closeAllConnections?.();}
+  const emailTimer=setInterval(()=>app.retryEmails().catch(error=>console.error("Email retry failed:",error.message)),60_000);emailTimer.unref();
+  function shutdown(){clearInterval(timer);clearInterval(emailTimer);app.server.close(()=>{app.store.close();process.exit(0);});app.server.closeAllConnections?.();}
   process.on("SIGINT",shutdown);process.on("SIGTERM",shutdown);
 }
 

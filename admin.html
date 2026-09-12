@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>HELION / Payment verification</title><link rel="stylesheet" href="/styles.css"></head>
+<body><main class="admin-shell">
+  <a href="/" class="label">HELION 2027</a><h1 class="display">Payment verification</h1>
+  <form id="admin-login">
+    <label class="form-field"><span>Admin username</span><input name="username" autocomplete="username" required maxlength="100"></label>
+    <label class="form-field"><span>Password</span><input type="password" name="password" autocomplete="current-password" required maxlength="256"></label>
+    <button class="button button-primary" type="submit">Log in</button>
+  </form>
+  <p id="admin-message" role="status" aria-live="polite"></p>
+  <section id="admin-payments" hidden>
+    <p>Compare each reference, amount and recipient against the actual HELION receiving UPI account history before confirming. A submitted reference is not proof of payment.</p>
+    <div class="admin-actions"><button id="admin-refresh" class="button button-quiet">Refresh</button><button id="admin-logout" class="button button-quiet">Log out</button></div>
+    <h2>waitlist applications</h2><p>Pending verification appears first. Showing up to 200 applications.</p>
+    <div id="admin-list"></div>
+  </section>
+</main><script src="/admin.js"></script></body></html>

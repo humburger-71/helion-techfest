@@ -8,3 +8,5 @@ data/helion-server.json
 !.env.example
 .DS_Store
 artifacts/
+node_modules/
+dist/
