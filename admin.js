@@ -3,7 +3,8 @@
   const get=id=>document.getElementById(id);
   async function api(path,body) {
     const response=await fetch('/api/admin/'+path,body===undefined?{cache:'no-store'}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const payload=await response.json();
+    const payload=await response.json().catch(()=>null);
+    if(!payload || typeof payload!=='object')throw new Error('The admin service could not respond. Please refresh and try again shortly.');
     if(response.status===401){get('admin-login').hidden=false;get('admin-payments').hidden=true;get('admin-list').replaceChildren();}
     if(!response.ok)throw new Error(payload.message||'Request failed.');
     return payload;

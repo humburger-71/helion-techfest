@@ -43,6 +43,14 @@ function createVercelHandler({env=process.env,storeFactory=createTursoStore,mirr
         return Response.json({message:'The database connection is unavailable. Please try again later.',code},{status:503,headers:{'Cache-Control':'no-store'}});
       }
       const url=new URL(request.url);
+      // Vercel rewrites nested routes to the single function entry point.
+      // Some runtimes retain the original path; others expose the destination.
+      if(url.pathname==='/api/proxy' && url.searchParams.has('__helion_path')) {
+        const path=url.searchParams.get('__helion_path');
+        if(!/^[a-z0-9-]+(?:\/[a-z0-9-]+)*$/.test(path))return Response.json({message:'Not found'},{status:404});
+        url.pathname='/api/'+path;
+      }
+      url.searchParams.delete('__helion_path');
       if(!url.pathname.startsWith('/api/'))return Response.json({message:'Not found'},{status:404});
       const input=request.body?Readable.fromWeb(request.body):Readable.from([]);
       input.method=request.method;input.url=url.pathname+url.search;

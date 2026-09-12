@@ -65,6 +65,28 @@ test('Turso preserves rejection, reserves transaction IDs and supports resubmiss
   assert.equal((await request('/api/admin/payments/'+row.id+'/confirm',{transactionId:'SHARED123456'},admin)).status,409);
 });
 
+test('Vercel rewrite dispatches nested payment and admin routes with authentication intact',async t=>{
+  const {request,session}=await setup(t);
+  const config=require('../vercel.json');
+  assert.ok(config.rewrites.some(r=>r.source==='/api/:path*' && r.destination==='/api/proxy?__helion_path=:path*'));
+  const route=path=>'/api/proxy?__helion_path='+encodeURIComponent(path);
+  const cookie=await session();
+  const created=await request(route('interests'),person,cookie);
+  assert.equal(created.status,201);
+  const row=(await created.json()).application;
+  assert.equal((await request(route('admin/payments'))).status,401);
+  assert.equal((await request(route('application/payment'),{transactionId:'REWRITE123456'},cookie)).status,200);
+  assert.equal((await request(route('admin/payments/'+row.id+'/confirm'),{transactionId:'REWRITE123456'},cookie)).status,401);
+  const loggedIn=await request(route('admin/login'),{username:'admin',password:'hosted-test-password'});
+  assert.equal(loggedIn.status,200);
+  const admin=loggedIn.headers.get('set-cookie').split(';')[0];
+  assert.equal((await request(route('admin/payments'),undefined,admin)).status,200);
+  assert.equal((await request(route('admin/payments/'+row.id+'/confirm'),{transactionId:'REWRITE123456'},admin)).status,200);
+  const paid=(await (await request(route('application'),undefined,cookie)).json()).application;
+  assert.equal(paid.paymentStatus,'paid');assert.match(paid.interestId,/^HLN-/);
+  assert.equal((await request(route('../admin'))).status,404);
+});
+
 test('Turso rollback keeps application pending if confirmation outbox write fails',async t=>{
   const {request,session,login,stores,emails,sheets}=await setup(t);const cookie=await session(),admin=await login();
   const row=(await (await request('/api/interests',person,cookie)).json()).application;

@@ -3,9 +3,14 @@
   "use strict";
   const get = id => document.getElementById(id);
   let loading;
+  async function readPayload(response) {
+    const payload=await response.json().catch(()=>null);
+    if(!payload || typeof payload!=='object')throw new Error('The waitlist service could not respond. Please try again shortly.');
+    return payload;
+  }
   async function resume() {
     loading ||= fetch('/api/application',{cache:'no-store'}).then(async response => {
-      const payload=await response.json();
+      const payload=await readPayload(response);
       if(!response.ok) throw new Error(payload.message||'Unable to load your application. Please try again.');
       render(payload);
     }).finally(()=>{loading=null;});
@@ -56,7 +61,7 @@
       get('payment-error').textContent='';
       try {
         const response=await fetch('/api/application/payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({transactionId:event.target.elements.transactionId.value})});
-        const payload=await response.json();
+        const payload=await readPayload(response);
         if(!response.ok) throw new Error(payload.message||'Unable to submit payment. Please try again.');
         render(payload);
       } catch(error) { get('payment-error').textContent=error.message; }
