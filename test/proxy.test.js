@@ -84,3 +84,20 @@ test('missing Turso configuration fails closed and retries initialization after 
   }
   assert.equal(calls,2);
 });
+
+test('Vercel reports safe configuration error codes without exposing credentials',async t=>{
+  const logs=[];
+  t.mock.method(console,'error',(...args)=>logs.push(args));
+  for(const [config,expected] of [
+    [{},'TURSO_CONFIG_MISSING'],
+    [{TURSO_DATABASE_URL:'""',TURSO_AUTH_TOKEN:'private-token'},'TURSO_CONFIG_MISSING'],
+    [{TURSO_DATABASE_URL:'not-a-url',TURSO_AUTH_TOKEN:'private-token'},'TURSO_URL_INVALID'],
+    [{TURSO_DATABASE_URL:'file:database.sqlite',TURSO_AUTH_TOKEN:'private-token'},'TURSO_URL_INVALID']
+  ]) {
+    const response=await createVercelHandler({env:config}).fetch(new Request('https://heliontech.in/api/health'));
+    assert.equal(response.status,503);
+    const body=await response.json();assert.equal(body.code,expected);
+    assert.doesNotMatch(JSON.stringify(body),/private-token/);
+  }
+  assert.doesNotMatch(JSON.stringify(logs),/private-token|not-a-url|file:database/);
+});

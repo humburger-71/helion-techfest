@@ -3,6 +3,15 @@ const {Readable}=require('node:stream');
 const {createHelionServer,createTursoStore,GoogleSheetsMirror}=require('./server');
 const {createMailer}=require('./payments');
 
+function databaseErrorCode(error) {
+  const codes=[error?.code,error?.cause?.code].map(value=>String(value||'').toUpperCase());
+  if(codes.includes('TURSO_CONFIG_MISSING'))return 'TURSO_CONFIG_MISSING';
+  if(codes.some(code=>code.includes('URL_')))return 'TURSO_URL_INVALID';
+  if(codes.some(code=>/AUTH|UNAUTHORIZED|FORBIDDEN/.test(code)))return 'TURSO_AUTH_FAILED';
+  if(codes.some(code=>/MODULE_NOT_FOUND|DLOPEN/.test(code)))return 'DATABASE_RUNTIME_ERROR';
+  return 'TURSO_CONNECTION_FAILED';
+}
+
 // Same application handler as local development, with Turso as durable storage.
 // No local database file, external backend URL, or HTTP proxy is used on Vercel.
 function createVercelHandler({env=process.env,storeFactory=createTursoStore,mirror,mailer}={}) {
@@ -22,7 +31,17 @@ function createVercelHandler({env=process.env,storeFactory=createTursoStore,mirr
     async fetch(request) {
       let app;
       try {app=await initialize();}
-      catch {return Response.json({message:'The database connection is unavailable. Please try again later.'},{status:503,headers:{'Cache-Control':'no-store'}});}
+      catch(error) {
+        const code=databaseErrorCode(error);
+        // Only log classifications and key presence, never URLs, tokens or raw errors.
+        console.error('HELION database initialization failed',{
+          code,
+          driverCode:/^[A-Z0-9_]{1,64}$/.test(String(error?.code||''))?error.code:'UNCLASSIFIED',
+          urlConfigured:Boolean(String(env.TURSO_DATABASE_URL||'').trim()),
+          tokenConfigured:Boolean(String(env.TURSO_AUTH_TOKEN||'').trim())
+        });
+        return Response.json({message:'The database connection is unavailable. Please try again later.',code},{status:503,headers:{'Cache-Control':'no-store'}});
+      }
       const url=new URL(request.url);
       if(!url.pathname.startsWith('/api/'))return Response.json({message:'Not found'},{status:404});
       const input=request.body?Readable.fromWeb(request.body):Readable.from([]);

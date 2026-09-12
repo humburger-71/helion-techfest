@@ -140,10 +140,14 @@ class InterestStore {
 
 function createTursoStore(env=process.env,client) {
   if(!client) {
-    if(!env.TURSO_DATABASE_URL || !env.TURSO_AUTH_TOKEN)throw Object.assign(new Error('Turso database configuration is incomplete.'),{statusCode:503});
-    const url=new URL(env.TURSO_DATABASE_URL);
-    if(!['libsql:','https:'].includes(url.protocol))throw Object.assign(new Error('Turso database URL must use libsql:// or https://.'),{statusCode:503});
-    client=require('@libsql/client').createClient({url:env.TURSO_DATABASE_URL,authToken:env.TURSO_AUTH_TOKEN,intMode:'number'});
+    const clean=value=>String(value||'').trim().replace(/^(["'])(.*)\1$/s,'$2').trim();
+    const databaseUrl=clean(env.TURSO_DATABASE_URL),authToken=clean(env.TURSO_AUTH_TOKEN);
+    if(!databaseUrl || !authToken)throw Object.assign(new Error('Turso database configuration is incomplete.'),{statusCode:503,code:'TURSO_CONFIG_MISSING'});
+    let url;
+    try {url=new URL(databaseUrl);}catch {throw Object.assign(new Error('Invalid Turso database URL.'),{statusCode:503,code:'TURSO_URL_INVALID'});}
+    if(!['libsql:','https:'].includes(url.protocol) || url.username || url.password)throw Object.assign(new Error('Turso database URL must use libsql:// or https://.'),{statusCode:503,code:'TURSO_URL_INVALID'});
+    // Avoid importing local native SQLite bindings into the Vercel function.
+    client=require('@libsql/client/http').createClient({url:databaseUrl,authToken,intMode:'number'});
   }
   const store=Object.create(InterestStore.prototype);
   store.database=remoteDatabase(client);store.sql=store.database;
