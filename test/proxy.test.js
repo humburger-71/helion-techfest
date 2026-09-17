@@ -123,3 +123,40 @@ test('Vercel reports safe configuration error codes without exposing credentials
   }
   assert.doesNotMatch(JSON.stringify(logs),/private-token|not-a-url|file:database/);
 });
+
+test('admin can resolve payment_pending applications using a verified unique reference',async t=>{
+  const {request,session,login}=await setup(t);const cookie=await session(),admin=await login();
+  const row=(await (await request('/api/interests',person,cookie)).json()).application;
+  const path='/api/admin/payments/'+row.id+'/confirm';
+  assert.equal((await request(path,{transactionId:null,verifiedReference:'ADMIN123456'},cookie)).status,401);
+  assert.equal((await request(path,{transactionId:null},admin)).status,400);
+  assert.equal((await request(path,{transactionId:null,verifiedReference:'ADMIN123456'},admin)).status,200);
+  const paid=(await (await request('/api/application',undefined,cookie)).json()).application;
+  assert.equal(paid.paymentStatus,'paid');assert.match(paid.interestId,/^HLN-/);
+  assert.equal((await request(path,{transactionId:'ADMIN123456'},admin)).status,200);
+  const second=await session();
+  const other=(await (await request('/api/interests',{...person,email:'other@example.com'},second)).json()).application;
+  assert.equal((await request('/api/admin/payments/'+other.id+'/confirm',{transactionId:null,verifiedReference:'ADMIN123456'},admin)).status,409);
+  assert.equal((await request('/api/admin/payments/'+other.id+'/reject',{transactionId:null},admin)).status,200);
+  const rejected=(await (await request('/api/application',undefined,second)).json()).application;
+  assert.equal(rejected.paymentStatus,'rejected');assert.equal(rejected.interestId,null);
+});
+
+test('admin deletion requires authentication and confirmation, cleans dependent records and checks stale state',async t=>{
+  const {request,session,login,stores}=await setup(t);const cookie=await session(),admin=await login();
+  const row=(await (await request('/api/interests',person,cookie)).json()).application;
+  const path='/api/admin/payments/'+row.id+'/delete';
+  const body={confirmDelete:true,expectedStatus:'payment_pending',transactionId:null};
+  assert.equal((await request(path,body,cookie)).status,401);
+  assert.equal((await request(path,{...body,confirmDelete:false},admin)).status,400);
+  await request('/api/application/payment',{transactionId:'DELETE123456'},cookie);
+  assert.equal((await request(path,body,admin)).status,409);
+  await request('/api/admin/payments/'+row.id+'/confirm',{transactionId:'DELETE123456'},admin);
+  const finalBody={confirmDelete:true,expectedStatus:'paid',transactionId:'DELETE123456'};
+  assert.equal((await request(path,finalBody,admin,{Origin:'https://evil.example'})).status,403);
+  assert.equal((await request(path,finalBody,admin)).status,200);
+  assert.equal((await request(path,finalBody,admin)).status,200);
+  assert.equal((await (await request('/api/application',undefined,cookie)).json()).application,null);
+  for(const table of ['interest_teams','interest_members','payment_references','payment_audit','confirmation_email_outbox','sheet_sync_outbox'])
+    assert.equal((await stores[0].sql.prepare('SELECT COUNT(*) n FROM '+table).get()).n,0);
+});

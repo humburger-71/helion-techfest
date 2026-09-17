@@ -154,13 +154,21 @@ function createPaymentApi({store,env,mailer,sendJson,readJsonBody,sync,retrySync
 
     });
   }
-  async function verify(id,action,identity,expectedReference) {
+  async function verify(id,action,identity,expectedReference,verifiedReference) {
     return db.transaction(async db=>{
       const row=(await db.prepare("SELECT * FROM interest_teams WHERE id=?").get(id));
       if (!row) fail(404,"Application not found.");
       if (row.upi_reference!==expectedReference) fail(409,"Payment reference changed. Refresh and check the new payment.");
       if ((action==="confirm"&&row.payment_status==="paid") || (action==="reject"&&row.payment_status==="rejected")) {  return false; }
-      if (row.payment_status!=="pending_verification") fail(409,"Payment is not pending verification.");
+      if (!["payment_pending","pending_verification"].includes(row.payment_status)) fail(409,"Payment is not pending verification.");
+      if(action==="confirm" && row.payment_status==="payment_pending") {
+        const reference=typeof verifiedReference==="string"?verifiedReference.trim().toUpperCase():"";
+        if(!/^[A-Z0-9]{8,35}$/.test(reference))fail(400,"Enter the transaction/reference ID verified in the receiving UPI account.");
+        if(await db.prepare("SELECT 1 FROM payment_references WHERE reference=?").get(reference))fail(409,"This transaction ID has already been submitted.");
+        await db.prepare("INSERT INTO payment_references VALUES(?,?,?)").run(reference,id,now());
+        await db.prepare("UPDATE interest_teams SET upi_reference=?,payment_submitted_at=? WHERE id=?").run(reference,now(),id);
+        row.upi_reference=reference;
+      }
       const date=now();
       if (action==="confirm") {
         const interestId=`HLN-${randomBytes(16).toString("hex").toUpperCase()}`;
@@ -233,9 +241,23 @@ function createPaymentApi({store,env,mailer,sendJson,readJsonBody,sync,retrySync
         for(const row of rows) row.members=(await db.prepare("SELECT name,email FROM interest_members WHERE interest_team_id=? ORDER BY member_number").all(row.id));
         sendJson(res,200,{identity,payments:rows}); return true;
       }
-      const match=path.match(/^\/api\/admin\/payments\/(\d+)\/(confirm|reject|retry-email)$/);
+      const match=path.match(/^\/api\/admin\/payments\/(\d+)\/(confirm|reject|retry-email|delete)$/);
       if(match && req.method==="POST") {
         const id=Number(match[1]), action=match[2], body=await readJsonBody(req);
+        if(action==="delete") {
+          if(body?.confirmDelete!==true)fail(400,"Confirm deletion first.");
+          await db.transaction(async tx=>{
+            const row=await tx.prepare("SELECT payment_status,upi_reference FROM interest_teams WHERE id=?").get(id);
+            if(!row)return;
+            if(row.payment_status!==body.expectedStatus || row.upi_reference!==body.transactionId)fail(409,"Application changed. Refresh before deleting.");
+            const email=await tx.prepare("SELECT status FROM confirmation_email_outbox WHERE interest_team_id=?").get(id);
+            if(email?.status==="sending")fail(409,"Email delivery is in progress. Retry deletion once delivery finishes.");
+            for(const table of ["confirmation_email_outbox","sheet_sync_outbox","payment_references","payment_audit","interest_members"])
+              await tx.prepare('DELETE FROM '+table+' WHERE interest_team_id=?').run(id);
+            await tx.prepare("DELETE FROM interest_teams WHERE id=?").run(id);
+          });
+          sendJson(res,200,{message:"Application deleted. Any existing Google Sheets row must be removed separately."});return true;
+        }
         if(action==="retry-email") {
           const email=(await db.prepare("SELECT * FROM confirmation_email_outbox WHERE interest_team_id=?").get(id));
           if(!email) fail(404,"No confirmation email is queued.");
@@ -245,7 +267,7 @@ function createPaymentApi({store,env,mailer,sendJson,readJsonBody,sync,retrySync
           }
           (await db.prepare("INSERT INTO payment_audit(interest_team_id,action,admin_identity,created_at) VALUES(?,?,?,?)").run(id,"retry-email",identity,now()));
           await sendEmail(id);
-        } else if(await verify(id,action,identity,body?.transactionId) && action==="confirm") {
+        } else if(await verify(id,action,identity,body?.transactionId,body?.verifiedReference) && action==="confirm") {
           await Promise.allSettled([sync(id),sendEmail(id)]);
         }
         sendJson(res,200,{message:"Saved. Refresh the payment list for delivery status."}); return true;

@@ -16,8 +16,8 @@
     get('admin-list').replaceChildren();
     get('admin-message').textContent=`Logged in as ${payload.identity}`;
     const groups=[
-      {key:'accepted',title:'Accepted payments',hint:'Payments verified and waitlist places confirmed.',statuses:['paid']},
       {key:'pending',title:'Pending payments',hint:'Awaiting payment or manual verification.',statuses:['payment_pending','pending_verification']},
+      {key:'accepted',title:'Accepted payments',hint:'Payments verified and waitlist places confirmed.',statuses:['paid']},
       {key:'rejected',title:'Rejected payments',hint:'Payments rejected; waitlist places remain unconfirmed.',statuses:['rejected']}
     ];
     const sections=new Map();
@@ -46,16 +46,24 @@
       function action(label,name){
         const button=document.createElement('button');button.className='button button-quiet';button.textContent=label;
         button.addEventListener('click',async()=>{
+          let verifiedReference;
+          if(name==='confirm' && row.payment_status==='payment_pending') {
+            verifiedReference=window.prompt('Enter the transaction/reference ID you verified in HELION receiving UPI history for this applicant:');
+            if(verifiedReference===null)return;
+            verifiedReference=verifiedReference.trim().toUpperCase();
+            if(!/^[A-Z0-9]{8,35}$/.test(verifiedReference)){get('admin-message').textContent='Enter a valid transaction/reference ID (8-35 letters or digits).';return;}
+          }
           const uncertain=name==='retry-email'&&row.email_status==='sending';
-          const prompt=uncertain?'Check SMTP delivery history first. Retrying an interrupted delivery may send a duplicate. Continue?':`${label} for ${row.full_name}, reference ${row.upi_reference}, amount ₹${(row.amount_paise/100).toFixed(2)}?`;
+          const prompt=name==='delete'?`Permanently delete application #${row.id} for ${row.full_name}? This removes its waitlist status and stored payment records. It does not refund a payment or remove an existing Google Sheets row. This cannot be undone.`:uncertain?'Check SMTP delivery history first. Retrying an interrupted delivery may send a duplicate. Continue?':`${label} for ${row.full_name}, reference ${verifiedReference||row.upi_reference||"not submitted"}, amount ₹${(row.amount_paise/100).toFixed(2)}?`;
           if(!window.confirm(prompt))return;
           actions.querySelectorAll('button').forEach(b=>b.disabled=true);
-          try{await api(`payments/${row.id}/${name}`,{transactionId:row.upi_reference,acknowledgePossibleDuplicate:uncertain});await load();}
+          try{await api(`payments/${row.id}/${name}`,{transactionId:row.upi_reference,verifiedReference,acknowledgePossibleDuplicate:uncertain,confirmDelete:name==='delete',expectedStatus:row.payment_status});await load();}
           catch(error){get('admin-message').textContent=error.message;actions.querySelectorAll('button').forEach(b=>b.disabled=false);}
         });actions.append(button);
       }
-      if(row.payment_status==='pending_verification'){action('Confirm Payment','confirm');action('Reject Payment','reject');}
+      if(['payment_pending','pending_verification'].includes(row.payment_status)){action('Confirm Payment','confirm');action('Reject Payment','reject');}
       if(['failed','pending','sending'].includes(row.email_status))action('Retry confirmation email','retry-email');
+      action('Delete application','delete');
       sections.get(row.payment_status)?.append(card);
     }
   }
