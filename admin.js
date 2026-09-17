@@ -15,10 +15,25 @@
     get('admin-login').hidden=true;get('admin-payments').hidden=false;
     get('admin-list').replaceChildren();
     get('admin-message').textContent=`Logged in as ${payload.identity}`;
-    if(!payload.payments.length)line(get('admin-list'),'Payments','No applications yet.');
-    for(const row of payload.payments){
+    const groups=[
+      {key:'accepted',title:'Accepted payments',hint:'Payments verified and waitlist places confirmed.',statuses:['paid']},
+      {key:'pending',title:'Pending payments',hint:'Awaiting payment or manual verification.',statuses:['payment_pending','pending_verification']},
+      {key:'rejected',title:'Rejected payments',hint:'Payments rejected; waitlist places remain unconfirmed.',statuses:['rejected']}
+    ];
+    const sections=new Map();
+    for(const group of groups){
+      const rows=payload.payments.filter(row=>group.statuses.includes(row.payment_status));
+      const section=document.createElement('section');section.className='admin-group';
+      const heading=document.createElement('h3');heading.id='admin-'+group.key;heading.textContent=group.title+' ('+rows.length+')';
+      section.setAttribute('aria-labelledby',heading.id);section.append(heading);
+      const hint=document.createElement('p');hint.textContent=group.hint;section.append(hint);
+      if(!rows.length){const empty=document.createElement('p');empty.textContent='No applications in this section.';section.append(empty);}
+      get('admin-list').append(section);
+      for(const status of group.statuses)sections.set(status,section);
+    }
+    for(const row of [...payload.payments].sort((a,b)=>Number(a.id)-Number(b.id))){
       const card=document.createElement('article');card.className='admin-payment';
-      const title=document.createElement('h3');title.textContent=row.full_name;card.append(title);
+      const title=document.createElement('h4');title.textContent='#'+row.id+' / '+row.full_name;card.append(title);
       line(card,'Application',row.id);line(card,'Team size',row.team_size);
       line(card,'Members',row.members.map(m=>`${m.name} <${m.email}>`).join(', '));
       line(card,'Amount',`₹${(row.amount_paise/100).toFixed(2)}`);line(card,'UPI reference',row.upi_reference);
@@ -41,7 +56,7 @@
       }
       if(row.payment_status==='pending_verification'){action('Confirm Payment','confirm');action('Reject Payment','reject');}
       if(['failed','pending','sending'].includes(row.email_status))action('Retry confirmation email','retry-email');
-      get('admin-list').append(card);
+      sections.get(row.payment_status)?.append(card);
     }
   }
   get('admin-login').addEventListener('submit',async event=>{

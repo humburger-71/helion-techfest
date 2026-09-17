@@ -68,7 +68,7 @@ function confirmationMessage(row, email, from) {
   return {
     from, to:email, subject:"Your HELION waitlist spot is confirmed",
     messageId:`<helion-${row.interest_id}@${String(from).split("@").pop().replace(/[^a-zA-Z0-9.-]/g,"")}>`,
-    text:`Your ₹${(row.amount_paise/100).toFixed(2)} payment has been verified. Your HELION waitlist spot is confirmed.\n\nOfficial HELION Interest ID: ${row.interest_id}\n\nKeep this ID safe.\n\nAs a waitlist member, you'll receive special perks and early updates before registration opens.\n\nTeam HELION`
+    text:`Your ₹${(row.amount_paise/100).toFixed(2)} payment has been verified. Your HELION waitlist spot is confirmed.\n\nOfficial HELION Interest ID: ${row.interest_id}\n\nKeep this ID safe.\n\nAs a waitlist member, you'll receive special perks, a discount on the actual event registration fee, and early updates before registration opens. The discount amount and perk details will be announced later.\n\nTeam HELION`
   };
 }
 function createMailer(env) {
@@ -229,7 +229,7 @@ function createPaymentApi({store,env,mailer,sendJson,readJsonBody,sync,retrySync
         const rows=(await db.prepare(`SELECT t.id,t.full_name,t.team_size,t.submitted_at,t.payment_status,t.amount_paise,t.upi_id,t.upi_reference,t.payment_submitted_at,t.verified_at,t.verified_by,t.interest_id,
           e.status email_status,e.last_error email_error,e.started_at email_started_at,s.status sheet_status,s.last_error sheet_error
           FROM interest_teams t LEFT JOIN confirmation_email_outbox e ON e.interest_team_id=t.id LEFT JOIN sheet_sync_outbox s ON s.interest_team_id=t.id
-          WHERE t.payment_status!='legacy' ORDER BY CASE WHEN t.payment_status='pending_verification' THEN 0 ELSE 1 END,t.submitted_at DESC LIMIT 200`).all());
+          WHERE t.payment_status!='legacy' ORDER BY t.id ASC`).all());
         for(const row of rows) row.members=(await db.prepare("SELECT name,email FROM interest_members WHERE interest_team_id=? ORDER BY member_number").all(row.id));
         sendJson(res,200,{identity,payments:rows}); return true;
       }

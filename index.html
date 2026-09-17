@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="styles.css?v=20260912-3">
+  <link rel="stylesheet" href="styles.css?v=20260917-1">
 </head>
 <body class="grain">
 
@@ -120,8 +120,8 @@
         <div class="interest-band reveal">
           <div class="interest-band-copy">
             <span class="label">Before registrations open</span>
-            <p class="display">Stay close to the horizon.</p>
-            <span>Join the waitlist for special perks and early updates before registration opens.</span>
+            <p class="display">Special perks. A discount on registration.</p>
+            <span>Join the paid waitlist to get special perks, a discount on the actual event registration fee, and early updates. Benefits apply after payment verification; details will be announced later.</span>
           </div>
           <button class="button button-primary" type="button" data-interest-open>
             Register your interest
@@ -154,6 +154,12 @@
           <p>Leave your details, then complete your waitlist payment. Confirmation follows manual payment verification.</p>
         </div>
 
+        <aside class="waitlist-benefits" aria-label="Your waitlist benefits">
+          <span class="label">Why join the paid waitlist?</span>
+          <h3>Special perks. A discount on registration.</h3>
+          <p>Once your payment is verified, you'll get special perks, a discount on the actual event registration fee, and early updates.</p>
+          <p>The discount amount and perk details will be announced later. Event registration is separate.</p>
+        </aside>
         <form id="interest-form" novalidate>
           <div class="field-grid interest-basics">
             <label class="form-field">
@@ -208,6 +214,12 @@
           <h2 class="display" id="payment-title">Complete your waitlist payment</h2>
           <p id="payment-instructions">Scan the QR code using any UPI app.</p>
         </div>
+        <aside class="waitlist-benefits" aria-label="Your waitlist benefits">
+          <span class="label">Why join the paid waitlist?</span>
+          <h3>Special perks. A discount on registration.</h3>
+          <p>Once your payment is verified, you'll get special perks, a discount on the actual event registration fee, and early updates.</p>
+          <p>The discount amount and perk details will be announced later. Event registration is separate.</p>
+        </aside>
         <p><strong id="payment-amount"></strong></p>
         <img id="payment-qr" class="payment-qr" alt="UPI payment QR code" width="300" height="300">
         <p class="payment-upi">UPI ID: <strong id="payment-upi"></strong></p>
@@ -234,8 +246,8 @@
   </dialog>
 
   <noscript><p class="noscript-message">JavaScript is required to submit your interest in HELION.</p></noscript>
-  <script src="payment.js?v=20260912-3"></script>
-  <script src="script.js?v=20260912-3"></script>
+  <script src="payment.js?v=20260917-1"></script>
+  <script src="script.js?v=20260917-1"></script>
   <script src="https://unpkg.com/lenis@1.3.25/dist/lenis.min.js"></script>
   <script src="smoothscroll.js?v=20260829-2"></script>
 </body>

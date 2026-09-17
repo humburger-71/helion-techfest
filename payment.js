@@ -43,7 +43,7 @@
       get('payment-status-label').textContent=paid?'Payment verified · waitlist confirmed':'Payment status: Pending verification';
       get('payment-result-title').textContent=paid?'waitlist confirmed':'Payment Submitted';
       get('payment-result-message').textContent=paid
-        ? `Your payment has been verified. Keep your HELION Interest ID safe. ${row.emailStatus==='sent'?'Your confirmation email has been sent. Check your inbox and spam folder.':'Your confirmation email is awaiting delivery; your waitlist spot is already confirmed.'} As a waitlist member, you'll receive special perks and early updates before registration opens.`
+        ? `Your payment has been verified. Keep your HELION Interest ID safe. ${row.emailStatus==='sent'?'Your confirmation email has been sent. Check your inbox and spam folder.':'Your confirmation email is awaiting delivery; your waitlist spot is already confirmed.'} As a waitlist member, you'll receive special perks, a discount on the actual event registration fee, and early updates. The discount amount and perk details will be announced later.`
         : `Your ${amount} waitlist payment has been submitted for verification. Once your payment is verified, your HELION Interest ID will be generated and sent to the email address provided during registration. Keep an eye on your inbox. 📩`;
       get('interest-reference-block').hidden=!paid;
       get('interest-reference').textContent=paid?row.interestId:'';
