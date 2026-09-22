@@ -438,12 +438,18 @@ img, svg { display: block; }
 .social-link { display: inline-flex; align-items: center; gap: .6rem; transition: color .45s var(--ease-helion); }
 .social-link svg { width: .9rem; height: .9rem; }
 .social-link:hover { color: var(--solar); }
-.status-ghost {
-  right: auto;
-  left: 8%;
-  bottom: -2vw;
-  font-size: clamp(4rem, 11vw, 12rem);
+.section-ghost-responsive {
+  bottom: .8rem;
+  font-size: clamp(1.25rem, 7vw, 8rem);
 }
+.status-ghost {
+  position: relative;
+  display: block;
+  inset: auto;
+  margin: clamp(3rem, 7vw, 7rem) 0 2rem;
+  font-size: clamp(1.75rem, 8vw, 9rem);
+}
+.status-ghost + .edition-footer { margin-top: 0; }
 
 .interest-dialog {
   position: fixed;
