@@ -169,7 +169,7 @@
       formView.hidden = false;
       successView.hidden = true;
       if (reference) reference.textContent = "";
-      if (submitLabel) submitLabel.textContent = "Submit interest";
+      if (submitLabel) submitLabel.textContent = "Continue to payment · ₹19";
       submitButton.disabled = false;
     }
 
@@ -244,7 +244,7 @@
           throw new Error("");
         }
         if (response.status === 404) throw new Error(serverUnavailableMessage);
-        if (payload.status === "ALREADY_INTERESTED") throw new Error("This email is already on the HELION early-interest list.");
+        if (payload.status === "ALREADY_INTERESTED") throw new Error("This email is already on the HELION Waitlist.");
         if (!response.ok) throw new Error(payload.message || "We couldn't save your interest. Please try again.");
 
         if (reference) reference.textContent = payload.interestId;
@@ -256,7 +256,7 @@
         if (message) formError.textContent = message;
       } finally {
         submitButton.disabled = false;
-        if (submitLabel) submitLabel.textContent = "Submit interest";
+        if (submitLabel) submitLabel.textContent = "Continue to payment · ₹19";
       }
     });
   }
@@ -301,7 +301,7 @@
       form.reset(); clearErrors(); formView.hidden = false; successView.hidden = true;
       qs("#interest-payment").hidden = true;
       dialog.setAttribute('aria-labelledby','interest-title');
-      reference.textContent = ""; submitButton.disabled = false; submitLabel.textContent = "Submit interest";
+      reference.textContent = ""; submitButton.disabled = false; submitLabel.textContent = "Continue to payment · ₹19";
     }
     function openDialog() {
       resetFlow();
@@ -344,7 +344,7 @@
         window.helionPayment.render(payload);
       } catch (error) {
         if (error.message) formError.textContent = error instanceof TypeError ? "We couldn't connect. Please try again." : error.message;
-      } finally { submitButton.disabled = false; submitLabel.textContent = "Submit interest"; }
+      } finally { submitButton.disabled = false; submitLabel.textContent = "Continue to payment · ₹19"; }
     });
   }
 

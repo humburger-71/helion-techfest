@@ -27,9 +27,9 @@
     get('payment-error').textContent='';
     const amount=`₹${Number(row.amount).toLocaleString('en-IN',{maximumFractionDigits:2})}`;
     if(needsPayment) {
-      get('payment-title').textContent=`Complete your ${amount} waitlist payment`;
+      get('payment-title').textContent=`Complete your ${amount} HELION Waitlist payment`;
       get('payment-instructions').textContent=row.paymentStatus==='rejected'
-        ? 'Your previous payment reference was rejected. waitlist is unconfirmed. Check your transfer or contact HELION before paying again. Submit a new, correct reference below.'
+        ? 'Your previous payment reference was rejected. Your HELION Waitlist membership is unconfirmed. Check your transfer or contact HELION before paying again. Submit a new, correct reference below.'
         : 'Scan the QR code using any UPI app.';
       get('payment-amount').textContent=`Amount: ${amount}`;
       get('payment-qr').src=row.qr;
@@ -43,8 +43,8 @@
       get('payment-status-label').textContent=paid?'Payment verified · waitlist confirmed':'Payment status: Pending verification';
       get('payment-result-title').textContent=paid?'waitlist confirmed':'Payment Submitted';
       get('payment-result-message').textContent=paid
-        ? `Your payment has been verified. Keep your HELION Interest ID safe. ${row.emailStatus==='sent'?'Your confirmation email has been sent. Check your inbox and spam folder.':'Your confirmation email is awaiting delivery; your waitlist spot is already confirmed.'} As a waitlist member, you'll receive special perks, a discount on the actual event registration fee, and early updates. The discount amount and perk details will be announced later.`
-        : `Your ${amount} waitlist payment has been submitted for verification. Once your payment is verified, your HELION Interest ID will be generated and sent to the email address provided during registration. Keep an eye on your inbox. 📩`;
+        ? `Your payment has been verified. Keep your HELION Waitlist ID safe. ${row.emailStatus==='sent'?'Your confirmation email has been sent. Check your inbox and spam folder.':'Your confirmation email is awaiting delivery; your waitlist spot is already confirmed.'} Welcome to the growing HELION student community. Your membership includes a registration discount and access to The Helion Horizon, our upcoming monthly student publication. Submission opportunities for selected student features are coming soon. The discount amount will be announced later; festival registration opens publicly for everyone and is separate.`
+        : `Your ${amount} HELION Waitlist payment has been submitted for verification. Once your payment is verified, your HELION Waitlist ID will be generated and sent to the email address provided during registration. Keep an eye on your inbox. 📩`;
       get('interest-reference-block').hidden=!paid;
       get('interest-reference').textContent=paid?row.interestId:'';
       get('interest-success').focus({preventScroll:true});

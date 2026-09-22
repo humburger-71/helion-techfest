@@ -66,9 +66,9 @@ function validPassword(password, encoded) {
 }
 function confirmationMessage(row, email, from) {
   return {
-    from, to:email, subject:"Your HELION waitlist spot is confirmed",
+    from, to:email, subject:"Your HELION Waitlist membership is confirmed",
     messageId:`<helion-${row.interest_id}@${String(from).split("@").pop().replace(/[^a-zA-Z0-9.-]/g,"")}>`,
-    text:`Your ₹${(row.amount_paise/100).toFixed(2)} payment has been verified. Your HELION waitlist spot is confirmed.\n\nOfficial HELION Interest ID: ${row.interest_id}\n\nKeep this ID safe.\n\nAs a waitlist member, you'll receive special perks, a discount on the actual event registration fee, and early updates before registration opens. The discount amount and perk details will be announced later.\n\nTeam HELION`
+    text:`Your ₹${(row.amount_paise/100).toFixed(2)} payment has been verified. Your HELION Waitlist membership is confirmed.\n\nOfficial HELION Waitlist ID: ${row.interest_id}\n\nKeep this ID safe.\n\nWelcome to the growing HELION student community. Your membership includes a registration discount and access to The Helion Horizon, our upcoming monthly student publication. Submission opportunities for selected student features are coming soon. The discount amount will be announced later; festival registration opens publicly for everyone and is separate.\n\nTeam HELION`
   };
 }
 function createMailer(env) {

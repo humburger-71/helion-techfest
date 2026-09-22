@@ -324,6 +324,32 @@ img, svg { display: block; }
 .section-number { display: flex; align-items: center; gap: 1.5rem; }
 .section-title { max-width: 58rem; margin: 2rem 0 0; font-size: clamp(3.2rem, 7vw, 7.5rem); line-height: .98; }
 .section-copy { max-width: 36rem; margin: 2rem 0 0; color: rgba(255,255,255,.46); font-size: clamp(.95rem, 1.3vw, 1.1rem); line-height: 1.85; }
+.community-sequence { display: flex; flex-wrap: wrap; gap: .7rem 1rem; margin: 3rem 0 1.5rem; font-family: "Syne", sans-serif; font-size: clamp(1rem, 1.7vw, 1.4rem); }
+.community-sequence span { color: var(--solar); }
+.community-note { max-width: 42rem; color: rgba(255,255,255,.55); font-size: .875rem; line-height: 1.8; }
+.horizon-preview { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 6vw, 7rem); max-width: 74rem; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid rgba(255,122,24,.45); }
+.publication-intro h3 { font-size: clamp(2rem, 3.5vw, 3.8rem); line-height: 1.1; margin: 1.5rem 0; }
+.publication-intro p { max-width: 30rem; color: rgba(255,255,255,.55); line-height: 1.85; }
+.publication-topics, .waitlist-details { margin: 0; }
+.publication-topics > div { padding: 1rem 0; border-bottom: 1px solid rgba(255,255,255,.1); }
+.publication-topics > div:first-child { padding-top: 0; }
+.publication-topics dt, .waitlist-details dt { font-family: "Syne", sans-serif; font-size: 1.15rem; font-weight: 600; }
+.publication-topics dd, .waitlist-details dd { margin: .5rem 0 0; color: rgba(255,255,255,.55); line-height: 1.75; }
+.waitlist-heading { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: clamp(2rem, 5vw, 5rem); margin-top: 2.5rem; }
+.waitlist-price { margin: 0; color: var(--solar); font-size: clamp(5rem, 10vw, 10rem); }
+.waitlist-heading .section-title { margin-top: 0; font-size: clamp(2.8rem, 5.5vw, 6rem); }
+.waitlist-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; margin: 2.5rem 0 3rem; }
+.publication-link { text-transform: none; letter-spacing: .04em; }
+.waitlist-details { max-width: 74rem; }
+.waitlist-details > div { display: grid; grid-template-columns: minmax(12rem, 1fr) 2fr; gap: 2rem; padding: 1.5rem 0; border-top: 1px solid rgba(255,255,255,.12); }
+.waitlist-details dd { margin: 0; max-width: 44rem; }
+.waitlist-benefits ul { padding-left: 1.2rem; line-height: 1.65; }
+.waitlist-benefits li + li { margin-top: .65rem; }
+@media (max-width: 700px) {
+  .horizon-preview, .waitlist-heading, .waitlist-details > div { grid-template-columns: minmax(0, 1fr); }
+  .waitlist-details > div { gap: .6rem; }
+  .waitlist-actions > .button { width: 100%; }
+}
 .section-aura {
   position: absolute;
   top: 22%;

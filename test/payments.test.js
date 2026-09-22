@@ -60,7 +60,7 @@ test('payment lifecycle, refresh, isolation, fake success, admin auth and concur
   assert.deepEqual(confirmations.map(r=>r.status),[200,200]);
   const paid=(await (await request('/api/application',undefined,cookie)).json()).application;
   assert.equal(paid.paymentStatus,'paid');assert.equal(paid.earlyAccessConfirmed,true);assert.match(paid.interestId,/^HLN-[0-9A-F]{32}$/);
-  assert.equal(emails.length,1);assert.equal(sheets.length,1);assert.match(emails[0].text,new RegExp(paid.interestId));assert.match(emails[0].text,/special perks, a discount on the actual event registration fee, and early updates/);assert.doesNotMatch(emails[0].text,/\b(?:150|850)\b/i);
+  assert.equal(emails.length,1);assert.equal(sheets.length,1);assert.match(emails[0].text,new RegExp(paid.interestId));assert.match(emails[0].text,/a registration discount and access to The Helion Horizon/);assert.doesNotMatch(emails[0].text,/\b(?:150|850)\b/i);
   assert.equal(sheets[0].interest_id,paid.interestId);
   const verified=app.store.database.prepare('SELECT verified_by,verified_at FROM interest_teams').get();assert.equal(verified.verified_by,'reviewer');assert.ok(verified.verified_at);
   await request(`/api/admin/payments/${row.id}/retry-email`,{},admin);assert.equal(emails.length,1);
