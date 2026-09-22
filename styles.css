@@ -442,6 +442,7 @@ img, svg { display: block; }
   bottom: .8rem;
   font-size: clamp(4rem, 11vw, 12rem);
 }
+.section-ghost-left { left: 8%; right: auto; }
 .status-ghost {
   position: relative;
   display: block;
