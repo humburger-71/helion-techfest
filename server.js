@@ -22,9 +22,10 @@ const STATIC_FILES = new Map([
   ["/script.js", "script.js"], ["/smoothscroll.js", "smoothscroll.js"],
   ["/admin", "admin.html"], ["/admin.js", "admin.js"], ["/payment.js", "payment.js"],
   ["/brand/helion-icon.png", "brand/helion-icon.png"],
+  ["/brand/favicon.svg", "brand/favicon.svg"],
   ["/brand/helion-wordmark.png", "brand/helion-wordmark.png"]
 ]);
-const MIME_TYPES = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".png": "image/png" };
+const MIME_TYPES = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml" };
 
 class DuplicateInterestError extends Error {
   constructor() { super("This email is already on the HELION list."); this.name = "DuplicateInterestError"; }

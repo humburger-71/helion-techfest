@@ -12,5 +12,5 @@ JSON.parse(readFileSync(join(root,'vercel.json'),'utf8'));
 // Publish an explicit allowlist so database, source and configuration cannot be served.
 const output=join(root,'dist');
 mkdirSync(join(output,'brand'),{recursive:true});
-for(const file of ['index.html','styles.css','script.js','payment.js','admin.html','admin.js','smoothscroll.js','brand/helion-icon.png','brand/helion-wordmark.png'])copyFileSync(join(root,file),join(output,file));
+for(const file of ['index.html','styles.css','script.js','payment.js','admin.html','admin.js','smoothscroll.js','brand/helion-icon.png','brand/favicon.svg','brand/helion-wordmark.png'])copyFileSync(join(root,file),join(output,file));
 console.log('HELION syntax checks passed; public assets built in dist/.');
